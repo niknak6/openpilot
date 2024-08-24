@@ -112,28 +112,32 @@ def backup_toggles(params, params_storage):
   backup_directory("/data/params/d", backup_dir, f"Successfully backed up toggles to {backup_dir}.", f"Failed to backup toggles to {backup_dir}.")
 
 def convert_params(params, params_storage):
-  def convert_param(key, action_func):
+  print("Starting to convert params")
+
+  required_type = int
+
+  def remove_param(key):
     try:
-      if params_storage.check_key(key) and params_storage.get_bool(key):
-        action_func()
-    except UnknownKeyName:
+      value = params_storage.get(key)
+      value = value.decode('utf-8') if isinstance(value, bytes) else value
+
+      if isinstance(value, str) and value.replace('.', '', 1).isdigit():
+        value = float(value) if '.' in value else int(value)
+
+      if (required_type == int and not isinstance(value, int)) or (required_type == str and isinstance(value, int)):
+        params.remove(key)
+        params_storage.remove(key)
+      elif key == "CustomIcons" and value == "frog_(animated)":
+        params.remove(key)
+        params_storage.remove(key)
+
+    except (UnknownKeyName, ValueError):
       pass
 
-  version = 8
+  for key in ["CustomColors", "CustomDistanceIcons", "CustomIcons", "CustomSignals", "CustomSounds", "WheelIcon"]:
+    remove_param(key)
 
-  try:
-    if params_storage.check_key("ParamConversionVersion") and params_storage.get_int("ParamConversionVersion") == version:
-      print("Params already converted, moving on.")
-      return
-  except UnknownKeyName:
-    pass
-
-  print("Converting params...")
-  convert_param("ModelSelector", lambda: params.put_nonblocking("ModelManagement", "True"))
-  convert_param("DragonPilotTune", lambda: params.put_nonblocking("FrogsGoMooTune", "True"))
-
-  print("Params successfully converted!")
-  params_storage.put_int_nonblocking("ParamConversionVersion", version)
+  print("Param conversion completed")
 
 def frogpilot_boot_functions(build_metadata, params, params_storage):
   convert_params(params, params_storage)
