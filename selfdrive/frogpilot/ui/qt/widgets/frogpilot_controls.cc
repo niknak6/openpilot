@@ -1,12 +1,12 @@
 #include "selfdrive/ui/ui.h"
 
-Params paramsMemory{"/dev/shm/params"};
-
 std::atomic<int> callCounter(0);
 void updateFrogPilotToggles() {
   int currentCall = ++callCounter;
 
   std::thread([currentCall]() {
+    Params paramsMemory{"/dev/shm/params"};
+
     paramsMemory.putBool("FrogPilotTogglesUpdated", true);
     util::sleep_for(1000);
 
