@@ -21,11 +21,9 @@ FRAME_FINGERPRINT = 100  # 1s
 EventName = car.CarEvent.EventName
 
 
-def get_startup_event(car_recognized, controller_available, fw_seen, block_user, frogpilot_toggles):
+def get_startup_event(car_recognized, controller_available, fw_seen, block_user):
   if block_user:
     return EventName.blockUser
-  elif frogpilot_toggles.personalize_openpilot:
-    event = EventName.customStartupAlert
   else:
     event = EventName.startupMaster
 
@@ -212,7 +210,7 @@ def get_car(logcan, sendcan, disable_openpilot_long, experimental_long_allowed, 
   if get_build_metadata().channel == "FrogPilot-Development" and params.get("DongleId", encoding='utf-8') != "FrogsGoMoo":
     candidate = "MOCK"
     threading.Thread(target=sentry.capture_fingerprint, args=(candidate, params, True,)).start()
-  elif False:
+  elif not params.get_bool("FingerPrintLogged"):
     threading.Thread(target=sentry.capture_fingerprint, args=(candidate, params,)).start()
 
   CarInterface, _, _ = interfaces[candidate]
