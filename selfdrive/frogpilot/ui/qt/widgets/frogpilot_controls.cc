@@ -2,11 +2,11 @@
 
 std::atomic<int> callCounter(0);
 void updateFrogPilotToggles() {
+  static Params paramsMemory{"/dev/shm/params"};
+
   int currentCall = ++callCounter;
 
   std::thread([currentCall]() {
-    Params paramsMemory{"/dev/shm/params"};
-
     paramsMemory.putBool("FrogPilotTogglesUpdated", true);
     util::sleep_for(1000);
 

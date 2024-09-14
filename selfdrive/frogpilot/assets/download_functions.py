@@ -1,7 +1,7 @@
 import os
 import requests
 
-from openpilot.selfdrive.frogpilot.controls.lib.frogpilot_functions import delete_file, is_url_pingable
+from openpilot.selfdrive.frogpilot.frogpilot_functions import delete_file, is_url_pingable
 
 GITHUB_URL = "https://raw.githubusercontent.com/FrogAi/FrogPilot-Resources/"
 GITLAB_URL = "https://gitlab.com/FrogAi/FrogPilot-Resources/-/raw/"
@@ -64,7 +64,7 @@ def get_remote_file_size(url):
       return None
     response.raise_for_status()
     return int(response.headers.get('Content-Length', 0))
-  except (requests.RequestException, ValueError) as e:
+  except Exception as e:
     handle_request_error(e, None, None, None, None)
     return None
 
