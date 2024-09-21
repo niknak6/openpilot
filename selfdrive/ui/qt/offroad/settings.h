@@ -35,6 +35,7 @@ signals:
   void expandToggleDescription(const QString &param);
 
   // FrogPilot signals
+  void closePanel();
   void closeParentToggle();
   void closeSubParentToggle();
   void closeSubSubParentToggle();
@@ -47,6 +48,7 @@ private:
   QStackedWidget *panel_widget;
 
   // FrogPilot variables
+  bool panelOpen;
   bool parentToggleOpen;
   bool subParentToggleOpen;
   bool subSubParentToggleOpen;

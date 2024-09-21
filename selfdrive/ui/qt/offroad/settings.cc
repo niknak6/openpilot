@@ -16,11 +16,7 @@
 #include "selfdrive/ui/qt/widgets/scrollview.h"
 #include "selfdrive/ui/qt/widgets/ssh_keys.h"
 
-#include "selfdrive/frogpilot/navigation/ui/navigation_settings.h"
-#include "selfdrive/frogpilot/ui/qt/offroad/driving_settings.h"
-#include "selfdrive/frogpilot/ui/qt/offroad/utilities.h"
-#include "selfdrive/frogpilot/ui/qt/offroad/vehicle_settings.h"
-#include "selfdrive/frogpilot/ui/qt/offroad/visual_settings.h"
+#include "selfdrive/frogpilot/ui/qt/offroad/frogpilot_settings.h"
 
 TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
   // param, title, desc, icon
@@ -371,8 +367,10 @@ void DevicePanel::showEvent(QShowEvent *event) {
 }
 
 void SettingsWindow::hideEvent(QHideEvent *event) {
+  closePanel();
   closeParentToggle();
 
+  panelOpen = false;
   parentToggleOpen = false;
   subParentToggleOpen = false;
   subSubParentToggleOpen = false;
@@ -425,6 +423,9 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
     } else if (parentToggleOpen) {
       closeParentToggle();
       parentToggleOpen = false;
+    } else if (panelOpen) {
+      closePanel();
+      panelOpen = false;
     } else {
       closeSettings();
     }
@@ -439,25 +440,19 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
   QObject::connect(this, &SettingsWindow::expandToggleDescription, toggles, &TogglesPanel::expandToggleDescription);
   QObject::connect(toggles, &TogglesPanel::updateMetric, this, &SettingsWindow::updateMetric);
 
-  FrogPilotDrivingPanel *frogpilotDriving = new FrogPilotDrivingPanel(this);
-  QObject::connect(frogpilotDriving, &FrogPilotDrivingPanel::openParentToggle, this, [this]() {parentToggleOpen=true;});
-  QObject::connect(frogpilotDriving, &FrogPilotDrivingPanel::openSubParentToggle, this, [this]() {subParentToggleOpen=true;});
-  QObject::connect(frogpilotDriving, &FrogPilotDrivingPanel::openSubSubParentToggle, this, [this]() {subSubParentToggleOpen=true;});
-
-  FrogPilotVisualsPanel *frogpilotVisuals = new FrogPilotVisualsPanel(this);
-  QObject::connect(frogpilotVisuals, &FrogPilotVisualsPanel::openParentToggle, this, [this]() {parentToggleOpen=true;});
-  QObject::connect(frogpilotVisuals, &FrogPilotVisualsPanel::openSubParentToggle, this, [this]() {subParentToggleOpen=true;});
+  // FrogPilot panels
+  FrogPilotSettingsWindow *frogpilotSettingsWindow = new FrogPilotSettingsWindow(this);
+  QObject::connect(frogpilotSettingsWindow, &FrogPilotSettingsWindow::openPanel, this, [this]() {panelOpen=true;});
+  QObject::connect(frogpilotSettingsWindow, &FrogPilotSettingsWindow::openParentToggle, this, [this]() {parentToggleOpen=true;});
+  QObject::connect(frogpilotSettingsWindow, &FrogPilotSettingsWindow::openSubParentToggle, this, [this]() {subParentToggleOpen=true;});
+  QObject::connect(frogpilotSettingsWindow, &FrogPilotSettingsWindow::openSubSubParentToggle, this, [this]() {subSubParentToggleOpen=true;});
 
   QList<QPair<QString, QWidget *>> panels = {
     {tr("Device"), device},
-    {tr("Driving"), frogpilotDriving},
-    {tr("Navigation"), new FrogPilotNavigationPanel(this)},
     {tr("Network"), new Networking(this)},
-    {tr("Software"), new SoftwarePanel(this)},
     {tr("Toggles"), toggles},
-    {tr("Utilities"), new UtilitiesPanel(this)},
-    {tr("Vehicles"), new FrogPilotVehiclesPanel(this)},
-    {tr("Visuals"), frogpilotVisuals},
+    {tr("Software"), new SoftwarePanel(this)},
+    {tr("FrogPilot"), frogpilotSettingsWindow},
   };
 
   nav_btns = new QButtonGroup(this);
@@ -490,24 +485,15 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
     ScrollView *panel_frame = new ScrollView(panel, this);
     panel_widget->addWidget(panel_frame);
 
-    if (name == tr("Driving") || name == tr("Visuals")) {
-      QScrollBar *scrollbar = panel_frame->verticalScrollBar();
-
-      QObject::connect(scrollbar, &QScrollBar::valueChanged, this, [this](int value) {
-        if (!parentToggleOpen) {
-          previousScrollPosition = value;
-        }
-      });
-
-      QObject::connect(scrollbar, &QScrollBar::rangeChanged, this, [this, panel_frame]() {
-        if (!parentToggleOpen) {
-          panel_frame->restorePosition(previousScrollPosition);
-        }
-      });
-    }
-
     QObject::connect(btn, &QPushButton::clicked, [=, w = panel_frame]() {
-      closeParentToggle();
+      if (panelOpen) {
+        closePanel();
+        panelOpen = false;
+      }
+      if (parentToggleOpen) {
+        closeParentToggle();
+        parentToggleOpen = false;
+      }
       previousScrollPosition = 0;
       btn->setChecked(true);
       panel_widget->setCurrentWidget(w);

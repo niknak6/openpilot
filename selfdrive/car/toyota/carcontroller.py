@@ -14,9 +14,11 @@ from opendbc.can.packer import CANPacker
 
 from openpilot.selfdrive.frogpilot.controls.lib.frogpilot_acceleration import get_max_allowed_accel
 
+LongCtrlState = car.CarControl.Actuators.LongControlState
 SteerControlType = car.CarParams.SteerControlType
 VisualAlert = car.CarControl.HUDControl.VisualAlert
-LongCtrlState = car.CarControl.Actuators.LongControlState
+
+ACCELERATION_DUE_TO_GRAVITY = 9.81
 
 # LKA limits
 # EPS faults if you apply torque while the steering rate is above 100 deg/s for too long
@@ -58,13 +60,7 @@ class CarController(CarControllerBase):
     # FrogPilot variables
     params = Params()
 
-    self.toyota_tune = params.get_bool("ToyotaTune")
-
     self.doors_locked = False
-
-    self.pcm_accel_comp = 0
-
-    self.pid = PIDController(k_p=1.0, k_i=0.25, k_f=0)
 
   def update(self, CC, CS, now_nanos, frogpilot_toggles):
     actuators = CC.actuators
@@ -124,43 +120,6 @@ class CarController(CarControllerBase):
                                                           lta_active, self.frame // 2, torque_wind_down))
 
     # *** gas and brake ***
-    if self.toyota_tune:
-      # we will throw out PCM's compensations, but that may be a good thing. for example:
-      # we lose things like pitch compensation, gas to maintain speed, brake to compensate for creeping, etc.
-      # but also remove undesirable "snap to standstill" behavior when not requesting enough accel at low speeds,
-      # lag to start moving, lag to start braking, etc.
-      # PI should compensate for lack of the desirable behaviors, but might be worse than the PCM doing them
-
-      # FIXME? neutral force will only be positive under ~5 mph, which messes up stopping control considerably
-      # not sure why this isn't captured in the PCM accel net, maybe that just ignores creep force + high speed deceleration
-      # it also doesn't seem to capture slightly more braking on downhills (VSC1S07->ASLP (pitch, deg.) might have some clues)
-      offset = min(CS.pcm_neutral_force / self.CP.mass, 0.0)
-      pitch_offset = math.sin(math.radians(CS.vsc_slope_angle)) * 9.81  # downhill is negative
-      # TODO: these limits are too slow to prevent a jerk when engaging, ramp down on engage?
-      # self.pcm_accel_comp = clip(actuators.accel - CS.pcm_accel_net, self.pcm_accel_comp - 0.05, self.pcm_accel_comp + 0.05)
-      pcm_accel_comp = self.pid.update(actuators.accel - CS.pcm_calc_accel_net)
-      self.pcm_accel_comp = clip(pcm_accel_comp, self.pcm_accel_comp - 0.005, self.pcm_accel_comp + 0.005)
-      if CS.out.cruiseState.standstill or actuators.longControlState == LongCtrlState.stopping:
-        self.pcm_accel_comp = 0.0
-        self.pid.reset()
-      pcm_accel_cmd = actuators.accel + self.pcm_accel_comp  # + offset
-      # pcm_accel_cmd = actuators.accel - pitch_offset
-
-      if not CC.longActive:
-        self.pid.reset()
-        self.pcm_accel_comp = 0.0
-        pcm_accel_cmd = 0.0
-
-      if frogpilot_toggles.sport_plus:
-        pcm_accel_cmd = clip(pcm_accel_cmd, self.params.ACCEL_MIN, get_max_allowed_accel(CS.out.vEgo))
-      else:
-        pcm_accel_cmd = clip(pcm_accel_cmd, self.params.ACCEL_MIN, self.params.ACCEL_MAX)
-    else:
-      if frogpilot_toggles.sport_plus:
-        pcm_accel_cmd = clip(actuators.accel, self.params.ACCEL_MIN, get_max_allowed_accel(CS.out.vEgo))
-      else:
-        pcm_accel_cmd = clip(actuators.accel, self.params.ACCEL_MIN, self.params.ACCEL_MAX)
-
     if self.CP.enableGasInterceptor and CC.longActive and self.CP.carFingerprint not in STOP_AND_GO_CAR:
       MAX_INTERCEPTOR_GAS = 0.5
       # RAV4 has very sensitive gas pedal
@@ -179,20 +138,32 @@ class CarController(CarControllerBase):
     else:
       interceptor_gas_cmd = 0.
 
-    # For cars where we allow a higher max acceleration of 2.0 m/s^2, compensate for PCM request overshoot
-    # TODO: validate PCM_CRUISE->ACCEL_NET for braking requests and compensate for imprecise braking as well
-    if self.CP.flags & ToyotaFlags.RAISED_ACCEL_LIMIT and CC.longActive:
-      pcm_accel_compensation = 2.0 * (CS.pcm_accel_net - actuators.accel) if actuators.accel > 0 else 0.0
+    # For cars where we allow a higher max acceleration of 2.0 m/s^2, compensate for PCM request overshoot and imprecise braking
+    # TODO: sometimes when switching from brake to gas quickly, CLUTCH->ACCEL_NET shows a slow unwind. make it go to 0 immediately
+    if self.CP.flags & ToyotaFlags.RAISED_ACCEL_LIMIT and CC.longActive and not CS.out.cruiseState.standstill:
+      # calculate amount of acceleration PCM should apply to reach target, given pitch
+      accel_due_to_pitch = math.sin(CS.slope_angle) * ACCELERATION_DUE_TO_GRAVITY
+      net_acceleration_request = actuators.accel + accel_due_to_pitch
+
+      # let PCM handle stopping for now
+      pcm_accel_compensation = 0.0
+      if actuators.longControlState != LongCtrlState.stopping:
+        pcm_accel_compensation = 2.0 * (CS.pcm_accel_net - net_acceleration_request)
 
       # prevent compensation windup
-      if actuators.accel - pcm_accel_compensation > self.params.ACCEL_MAX:
-        pcm_accel_compensation = actuators.accel - self.params.ACCEL_MAX
+      pcm_accel_compensation = clip(pcm_accel_compensation, actuators.accel - self.params.ACCEL_MAX,
+                                    actuators.accel - self.params.ACCEL_MIN)
 
       self.pcm_accel_compensation = rate_limit(pcm_accel_compensation, self.pcm_accel_compensation, -0.01, 0.01)
+      pcm_accel_cmd = actuators.accel - self.pcm_accel_compensation
     else:
       self.pcm_accel_compensation = 0.0
+      pcm_accel_cmd = actuators.accel
 
-    pcm_accel_cmd -= self.pcm_accel_compensation
+    if frogpilot_toggles.sport_plus:
+      pcm_accel_cmd = clip(pcm_accel_cmd, self.params.ACCEL_MIN, get_max_allowed_accel(CS.out.vEgo))
+    else:
+      pcm_accel_cmd = clip(pcm_accel_cmd, self.params.ACCEL_MIN, self.params.ACCEL_MAX)
 
     # on entering standstill, send standstill request
     if CS.out.standstill and not self.last_standstill and (self.CP.carFingerprint not in NO_STOP_TIMER_CAR or self.CP.enableGasInterceptor):

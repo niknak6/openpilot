@@ -116,6 +116,14 @@ class FrogPilotVariables:
     if toggle.conditional_experimental_mode:
       self.params.put_bool("ExperimentalMode", True)
 
+    toggle.curve_speed_controller = toggle.openpilot_longitudinal and self.params.get_bool("CurveSpeedControl")
+    toggle.map_turn_speed_controller = toggle.curve_speed_controller and self.params.get_bool("MTSCEnabled")
+    toggle.mtsc_curvature_check = toggle.map_turn_speed_controller and self.params.get_bool("MTSCCurvatureCheck")
+    self.params_memory.put_float("MapTargetLatA", 2 * (self.params.get_int("TurnAggressiveness") / 100.))
+    toggle.vision_turn_controller = toggle.curve_speed_controller and self.params.get_bool("VisionTurnControl")
+    toggle.curve_sensitivity = self.params.get_int("CurveSensitivity") / 100. if toggle.vision_turn_controller else 1
+    toggle.turn_aggressiveness = self.params.get_int("TurnAggressiveness") / 100. if toggle.vision_turn_controller else 1
+
     custom_alerts = self.params.get_bool("CustomAlerts")
     toggle.green_light_alert = custom_alerts and self.params.get_bool("GreenLightAlert")
     toggle.lead_departing_alert = custom_alerts and self.params.get_bool("LeadDepartingAlert")
@@ -191,17 +199,13 @@ class FrogPilotVariables:
     toggle.increased_stopping_distance = self.params.get_int("StoppingDistance") * distance_conversion if longitudinal_tune else 0
     toggle.lead_detection_threshold = self.params.get_int("LeadDetectionThreshold") / 100. if longitudinal_tune else 0.5
 
-    toggle.map_turn_speed_controller = toggle.openpilot_longitudinal and self.params.get_bool("MTSCEnabled")
-    toggle.mtsc_curvature_check = toggle.map_turn_speed_controller and self.params.get_bool("MTSCCurvatureCheck")
-    self.params_memory.put_float("MapTargetLatA", 2 * (self.params.get_int("MTSCAggressiveness") / 100.))
-
     toggle.model_manager = self.params.get_bool("ModelManagement", block=openpilot_installed)
-    available_models = self.params.get("AvailableModels", block=toggle.model_manager, encoding='utf-8') or ''
-    available_model_names = self.params.get("AvailableModelsNames", block=toggle.model_manager, encoding='utf-8') or ''
+    available_models = self.params.get("AvailableModels", block=toggle.model_manager, encoding='utf-8') or ""
+    available_model_names = self.params.get("AvailableModelsNames", block=toggle.model_manager, encoding='utf-8') or ""
     if toggle.model_manager and available_models:
       toggle.model_randomizer = self.params.get_bool("ModelRandomizer")
       if toggle.model_randomizer:
-        blacklisted_models = (self.params.get("BlacklistedModels", encoding='utf-8') or '').split(',')
+        blacklisted_models = (self.params.get("BlacklistedModels", encoding='utf-8') or "").split(',')
         existing_models = [model for model in available_models.split(',') if model not in blacklisted_models and os.path.exists(os.path.join(MODELS_PATH, f"{model}.thneed"))]
         toggle.model = random.choice(existing_models) if existing_models else DEFAULT_MODEL
       else:
@@ -219,14 +223,17 @@ class FrogPilotVariables:
       toggle.model = DEFAULT_MODEL
       current_model_name = DEFAULT_MODEL_NAME
       toggle.part_model_param = ""
-    navigation_models = self.params.get("NavigationModels", encoding='utf-8') or ''
+    e2e_longitudinal_models = self.params.get("E2ELongitudinalModels", encoding='utf-8') or ""
+    toggle.e2e_longitudinal_model = e2e_longitudinal_models and toggle.model in e2e_longitudinal_models.split(',')
+    navigation_models = self.params.get("NavigationModels", encoding='utf-8') or ""
     toggle.navigationless_model = navigation_models and toggle.model not in navigation_models.split(',')
-    radarless_models = self.params.get("RadarlessModels", encoding='utf-8') or ''
+    radarless_models = self.params.get("RadarlessModels", encoding='utf-8') or ""
     toggle.radarless_model = radarless_models and toggle.model in radarless_models.split(',')
-    toggle.clairvoyant_driver = toggle.model == "clairvoyant-driver"
-    toggle.clairvoyant_driver_v2 = toggle.model == "clairvoyant-driver-v2"
+    poseless_models = self.params.get("PoselessModels", encoding='utf-8') or ""
+    toggle.poseless_model = poseless_models and toggle.model in poseless_models.split(',')
     toggle.secretgoodopenpilot_model = toggle.model == "secret-good-openpilot"
-    toggle.tomb_raider = toggle.model == "tomb-raider"
+    velocity_models = self.params.get("VelocityModels", encoding='utf-8') or ""
+    toggle.velocity_model = velocity_models and toggle.model in velocity_models.split(',')
 
     quality_of_life_controls = self.params.get_bool("QOLControls")
     toggle.custom_cruise_increase = self.params.get_int("CustomCruise") if quality_of_life_controls and not pcm_cruise else 1
@@ -271,9 +278,5 @@ class FrogPilotVariables:
     toyota_doors = car_make == "toyota" and self.params.get_bool("ToyotaDoors")
     toggle.lock_doors = toyota_doors and self.params.get_bool("LockDoors")
     toggle.unlock_doors = toyota_doors and self.params.get_bool("UnlockDoors")
-
-    toggle.vision_turn_controller = toggle.openpilot_longitudinal and self.params.get_bool("VisionTurnControl")
-    toggle.curve_sensitivity = self.params.get_int("CurveSensitivity") / 100. if toggle.vision_turn_controller else 1
-    toggle.turn_aggressiveness = self.params.get_int("TurnAggressiveness") / 100. if toggle.vision_turn_controller else 1
 
 FrogPilotVariables = FrogPilotVariables()

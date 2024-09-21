@@ -81,6 +81,8 @@ def backup_directory(backup, destination, success_message, fail_message, minimum
 
   except (FileExistsError, subprocess.CalledProcessError, OSError) as e:
     handle_backup_error(e, destination, in_progress_destination, in_progress_compressed_backup, fail_message)
+  except Exception as e:
+    print(f"An unexpected error occurred while trying to create the {backup} backup: {e}")
   finally:
     cleanup_backup(in_progress_destination, in_progress_compressed_backup)
 
@@ -168,6 +170,8 @@ def convert_params(params, params_storage):
 
     except (UnknownKeyName, ValueError):
       pass
+    except Exception as e:
+      print(f"An error occurred when converting params: {e}")
 
   for key in ["CustomColors", "CustomDistanceIcons", "CustomIcons", "CustomSignals", "CustomSounds", "WheelIcon"]:
     remove_param(key)
@@ -182,7 +186,7 @@ def delete_file(file):
     else:
       print(f"File not found: {file}")
   except Exception as e:
-    print(f"An error occurred: {e}")
+    print(f"An error occurred when deleting {file}: {e}")
 
 def frogpilot_boot_functions(build_metadata, params, params_storage):
   while not system_time_valid():
@@ -194,12 +198,18 @@ def frogpilot_boot_functions(build_metadata, params, params_storage):
     backup_toggles(params, params_storage)
   except subprocess.CalledProcessError as e:
     print(f"Backup failed: {e}")
+  except Exception as e:
+    print(f"An error occurred when creating boot backups: {e}")
 
 def is_url_pingable(url, timeout=5):
   try:
     urllib.request.urlopen(url, timeout=timeout)
     return True
-  except (http.client.IncompleteRead, http.client.RemoteDisconnected, socket.gaierror, socket.timeout, urllib.error.HTTPError, urllib.error.URLError):
+  except (urllib.error.URLError, socket.timeout) as e:
+    print(f"Failed to ping {url}: {e}")
+    return False
+  except Exception as e:
+    print(f"An unexpected error occurred while trying to ping {url}: {e}")
     return False
 
 def run_cmd(cmd, success_message, fail_message, retries=5, delay=1):

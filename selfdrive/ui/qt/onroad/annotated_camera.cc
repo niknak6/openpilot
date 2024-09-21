@@ -813,8 +813,7 @@ void AnnotatedCameraWidget::updateFrogPilotVariables(int alert_height, const UIS
   conditionalStatus = scene.conditional_status;
   showConditionalExperimentalStatusBar = scene.show_cem_status_bar;
 
-  bool disableSmoothing = vtscControllingCurve ? scene.disable_smoothing_vtsc : scene.disable_smoothing_mtsc;
-  cruiseAdjustment = disableSmoothing || !is_cruise_set ? fmax(setSpeed - scene.adjusted_cruise, 0) : fmax(0.25 * (setSpeed - scene.adjusted_cruise) + 0.75 * cruiseAdjustment - 1, 0);
+  cruiseAdjustment = scene.disable_curve_speed_smoothing || !is_cruise_set ? fmax(setSpeed - scene.adjusted_cruise, 0) : fmax(0.25 * (setSpeed - scene.adjusted_cruise) + 0.75 * cruiseAdjustment - 1, 0);
   vtscControllingCurve = scene.vtsc_controlling_curve;
 
   currentAcceleration = scene.acceleration;

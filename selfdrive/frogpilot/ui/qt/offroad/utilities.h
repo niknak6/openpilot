@@ -1,11 +1,11 @@
 #pragma once
 
-#include "selfdrive/ui/qt/offroad/settings.h"
+#include "selfdrive/frogpilot/ui/qt/offroad/frogpilot_settings.h"
 
-class UtilitiesPanel : public ListWidget {
+class UtilitiesPanel : public FrogPilotListWidget {
   Q_OBJECT
 public:
-  explicit UtilitiesPanel(SettingsWindow *parent);
+  explicit UtilitiesPanel(FrogPilotSettingsWindow *parent);
 
 private:
   Params params;

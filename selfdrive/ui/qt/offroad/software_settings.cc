@@ -47,8 +47,6 @@ SoftwarePanel::SoftwarePanel(QWidget* parent) : ListWidget(parent) {
       std::system("pkill -SIGHUP -f system.updated.updated");
     }
     paramsMemory.putBool("ManualUpdateInitiated", true);
-
-    device()->resetInteractiveTimeout(30);
   });
   addItem(downloadBtn);
 
@@ -185,7 +183,12 @@ void SoftwarePanel::updateLabels() {
   versionLbl->setText(QString::fromStdString(params.get("UpdaterCurrentDescription")));
   versionLbl->setDescription(QString::fromStdString(params.get("UpdaterCurrentReleaseNotes")));
 
-  installBtn->setVisible((!is_onroad || parked) && params.getBool("UpdateAvailable"));
+  bool install_ready = (!is_onroad || parked) && params.getBool("UpdateAvailable");
+  if (!installBtn->isVisible() && install_ready) {
+    device()->resetInteractiveTimeout(30);
+  }
+
+  installBtn->setVisible(install_ready);
   installBtn->setValue(QString::fromStdString(params.get("UpdaterNewDescription")));
   installBtn->setDescription(QString::fromStdString(params.get("UpdaterNewReleaseNotes")));
 

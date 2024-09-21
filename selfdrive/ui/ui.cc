@@ -250,7 +250,7 @@ static void update_state(UIState *s) {
   }
   if (sm.updated("deviceState")) {
     auto deviceState = sm["deviceState"].getDeviceState();
-    scene.online = deviceState.getNetworkType() == cereal::DeviceState::NetworkType::WIFI;
+    scene.online = deviceState.getNetworkType() != cereal::DeviceState::NetworkType::NONE;
   }
   if (sm.updated("frogpilotCarControl")) {
     auto frogpilotCarControl = sm["frogpilotCarControl"].getFrogpilotCarControl();
@@ -391,8 +391,7 @@ void ui_update_frogpilot_params(UIState *s, Params &params) {
   scene.is_storage_used = scene.sidebar_metrics && params.getBool("ShowStorageUsed");
   scene.use_si = developer_ui && params.getBool("UseSI");
 
-  scene.disable_smoothing_mtsc = params.getBool("MTSCEnabled") && params.getBool("DisableMTSCSmoothing");
-  scene.disable_smoothing_vtsc = params.getBool("VisionTurnControl") && params.getBool("DisableVTSCSmoothing");
+  scene.disable_curve_speed_smoothing = params.getBool("CurveSpeedControl") && params.getBool("DisableCurveSpeedSmoothing");
 
   bool driving_personalities = scene.longitudinal_control && params.getBool("DrivingPersonalities");
   scene.onroad_distance_button = driving_personalities && params.getBool("OnroadDistanceButton");
@@ -420,7 +419,6 @@ void ui_update_frogpilot_params(UIState *s, Params &params) {
 
   bool quality_of_life_controls = params.getBool("QOLControls");
   scene.reverse_cruise = quality_of_life_controls && params.getBool("ReverseCruise");
-  scene.reverse_cruise_ui = params.getBool("ReverseCruiseUI");
 
   bool quality_of_life_visuals = params.getBool("QOLVisuals");
   scene.big_map = quality_of_life_visuals && params.getBool("BigMap");

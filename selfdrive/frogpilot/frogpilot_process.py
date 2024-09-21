@@ -3,7 +3,7 @@ import os
 import threading
 import time
 
-from cereal import log, messaging
+from cereal import messaging
 from openpilot.common.params import Params
 from openpilot.common.realtime import Priority, config_realtime_process
 from openpilot.common.time import system_time_valid
@@ -15,8 +15,6 @@ from openpilot.selfdrive.frogpilot.controls.frogpilot_planner import FrogPilotPl
 from openpilot.selfdrive.frogpilot.controls.lib.frogpilot_tracking import FrogPilotTracking
 from openpilot.selfdrive.frogpilot.frogpilot_functions import backup_toggles, is_url_pingable
 from openpilot.selfdrive.frogpilot.frogpilot_variables import FrogPilotVariables
-
-WIFI = log.DeviceState.NetworkType.wifi
 
 locks = {
   "backup_toggles": threading.Lock(),
@@ -76,9 +74,6 @@ def download_assets(model_manager, theme_manager, params, params_memory):
       run_thread_with_lock("download_theme", theme_manager.download_theme, (asset_type, asset_to_download, param))
 
 def time_checks(automatic_updates, deviceState, model_manager, now, screen_off, started, theme_manager, params, params_memory):
-  if deviceState.networkType != WIFI:
-    return
-
   if not is_url_pingable("https://github.com"):
     return
 
@@ -204,9 +199,8 @@ def frogpilot_thread():
         time_validated = system_time_valid()
         if not time_validated:
           continue
-        if deviceState.networkType == WIFI:
-          run_thread_with_lock("update_models", model_manager.update_models, (True,))
-          run_thread_with_lock("update_themes", theme_manager.update_themes, (True,))
+        run_thread_with_lock("update_models", model_manager.update_models, (True,))
+        run_thread_with_lock("update_themes", theme_manager.update_themes, (True,))
 
       theme_manager.update_holiday()
 

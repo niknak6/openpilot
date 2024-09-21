@@ -345,7 +345,7 @@ def joystick_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.SubMaster,
 # FrogPilot Alerts
 def custom_startup_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.SubMaster, metric: bool, soft_disable_time: int) -> Alert:
   params = Params()
-  return StartupAlert(params.get("StartupMessageTop", encoding='utf-8'), params.get("StartupMessageBottom", encoding='utf-8'), alert_status=AlertStatus.frogpilot)
+  return StartupAlert(params.get("StartupMessageTop", encoding='utf-8') or "", params.get("StartupMessageBottom", encoding='utf-8') or "", alert_status=AlertStatus.frogpilot)
 
 def holiday_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.SubMaster, metric: bool, soft_disable_time: int) -> Alert:
   holiday_messages = {

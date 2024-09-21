@@ -7,11 +7,13 @@
 #include "selfdrive/ui/qt/offroad/settings.h"
 #include "selfdrive/ui/ui.h"
 
+#include "selfdrive/frogpilot/ui/qt/offroad/frogpilot_settings.h"
+
 class FrogPilotVehiclesPanel : public FrogPilotListWidget {
   Q_OBJECT
 
 public:
-  explicit FrogPilotVehiclesPanel(SettingsWindow *parent);
+  explicit FrogPilotVehiclesPanel(FrogPilotSettingsWindow *parent);
 
 private:
   void hideToggles();

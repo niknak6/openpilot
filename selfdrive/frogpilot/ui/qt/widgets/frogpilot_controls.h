@@ -15,11 +15,11 @@ QColor loadThemeColors(const QString &colorKey);
 
 const QString buttonStyle = R"(
   QPushButton {
+    padding: 0 25px;
     border-radius: 50px;
-    font-size: 40px;
+    font-size: 35px;
     font-weight: 500;
     height: 100px;
-    padding: 0 25px;
     color: #E4E4E4;
     background-color: #393939;
   }
@@ -69,6 +69,10 @@ public:
     adjustStretch();
   }
 
+  inline void setSpacing(int spacing) {
+    inner_layout.setSpacing(spacing);
+  }
+
 protected:
   void paintEvent(QPaintEvent *event) {
     QPainter p(this);
@@ -106,11 +110,11 @@ class FrogPilotButtonsControl : public AbstractControl {
 public:
   FrogPilotButtonsControl(const QString &title, const QString &desc,
                           const std::vector<QString> &button_labels,
-                          bool checkable = false, int minimum_button_width = 225,
-                          QWidget *parent = nullptr)
-    : AbstractControl(title, desc, ""), button_group(new QButtonGroup(this)) {
+                          bool checkable = false, bool exclusive = true, const QString &icon = "",
+                          int minimum_button_width = 225, QWidget *parent = nullptr)
+    : AbstractControl(title, desc, icon), button_group(new QButtonGroup(this)) {
 
-    button_group->setExclusive(true);
+    button_group->setExclusive(exclusive);
 
     for (int i = 0; i < button_labels.size(); ++i) {
       QPushButton *button = new QPushButton(button_labels[i], this);
@@ -132,9 +136,9 @@ public:
     }
   }
 
-  void setCheckedButton(int id) {
+  void setCheckedButton(int id, bool status = true) {
     if (QAbstractButton *button = button_group->button(id)) {
-      button->setChecked(true);
+      button->setChecked(status);
     }
   }
 
@@ -249,7 +253,7 @@ signals:
 
 private:
   void refresh() {
-    manage_button->setVisible(params.getBool(key));
+    manage_button->setEnabled(this->isEnabled() && params.getBool(key));
   }
 
   ButtonControl *manage_button;
