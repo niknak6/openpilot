@@ -196,6 +196,10 @@ public:
     connect(this, &ToggleControl::toggleFlipped, this, &FrogPilotButtonToggleControl::refresh);
   }
 
+  void showEvent(QShowEvent *event) override {
+    refresh();
+  }
+
   void refresh() {
     bool state = params.getBool(key);
     if (state != toggle.on) {
@@ -210,11 +214,6 @@ public:
         button->setChecked(params.getBool(button_params[buttonIndex].toStdString()));
       }
     }
-  }
-
-  void showEvent(QShowEvent *event) override {
-    refresh();
-    QWidget::showEvent(event);
   }
 
 private:
@@ -242,7 +241,6 @@ public:
     connect(manage_button, &ButtonControl::clicked, this, &FrogPilotParamManageControl::manageButtonClicked);
   }
 
-protected:
   void showEvent(QShowEvent *event) {
     ParamControl::showEvent(event);
     refresh();
@@ -430,7 +428,7 @@ public:
                                    QWidget *parent = nullptr, const bool &loop = true, const QString &label = "",
                                    const float &division = 1.0f, const float &interval = 1.0f,
                                    const std::vector<QString> &button_params = std::vector<QString>(), const std::vector<QString> &button_labels = std::vector<QString>(),
-                                   const int minimum_button_width = 225)
+                                   const bool checkable = true, const int minimum_button_width = 225)
       : FrogPilotParamValueControl(param, title, desc, icon, minValue, maxValue, valueLabels, parent, loop, label, division, interval) {
 
     button_group = new QButtonGroup(this);
@@ -438,7 +436,7 @@ public:
 
     for (int i = 0; i < button_labels.size(); ++i) {
       QPushButton *button = new QPushButton(button_labels[i], this);
-      button->setCheckable(true);
+      button->setCheckable(checkable);
       button->setChecked(params.getBool(button_params[i].toStdString()));
       button->setStyleSheet(buttonStyle);
       button->setMinimumWidth(minimum_button_width);

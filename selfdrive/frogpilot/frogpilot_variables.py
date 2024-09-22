@@ -72,6 +72,23 @@ class FrogPilotVariables:
     distance_conversion = 1. if toggle.is_metric else CV.FOOT_TO_METER
     speed_conversion = CV.KPH_TO_MS if toggle.is_metric else CV.MPH_TO_MS
 
+    advanced_lateral_tune = self.params.get_bool("AdvancedLateralTune")
+    stock_steer_friction = self.params.get_float("SteerFrictionStock")
+    toggle.steer_friction = self.params.get_float("SteerFriction") if advanced_lateral_tune else stock_steer_friction
+    toggle.use_custom_steer_friction = toggle.steer_friction != stock_steer_friction
+    stock_steer_lat_accel_factor = self.params.get_float("SteerLatAccelStock")
+    toggle.steer_lat_accel_factor = self.params.get_float("SteerLatAccel") if advanced_lateral_tune else stock_steer_lat_accel_factor
+    toggle.use_custom_lat_accel_factor = toggle.steer_lat_accel_factor != stock_steer_lat_accel_factor
+    stock_steer_kp = self.params.get_float("SteerKPStock")
+    toggle.steer_kp = self.params.get_float("SteerKP") if advanced_lateral_tune else stock_steer_kp
+    toggle.use_custom_kp = toggle.steer_kp != stock_steer_kp
+    stock_steer_ratio = self.params.get_float("SteerRatioStock")
+    toggle.steer_ratio = self.params.get_float("SteerRatio") if advanced_lateral_tune else stock_steer_ratio
+    toggle.use_custom_steer_ratio = toggle.steer_ratio != stock_steer_ratio
+
+    advanced_longitudinal_tune = toggle.openpilot_longitudinal and self.params.get_bool("LongitudinalTune")
+    toggle.lead_detection_threshold = self.params.get_int("LeadDetectionThreshold") / 100. if advanced_longitudinal_tune else 0.5
+
     toggle.alert_volume_control = self.params.get_bool("AlertVolumeControl")
     toggle.disengage_volume = self.params.get_int("DisengageVolume") if toggle.alert_volume_control else 100
     toggle.engage_volume = self.params.get_int("EngageVolume") if toggle.alert_volume_control else 100
@@ -181,9 +198,6 @@ class FrogPilotVariables:
 
     lateral_tune = self.params.get_bool("LateralTune")
     toggle.force_auto_tune = lateral_tune and self.params.get_bool("ForceAutoTune")
-    stock_steer_ratio = self.params.get_float("SteerRatioStock")
-    toggle.steer_ratio = self.params.get_float("SteerRatio") if lateral_tune else stock_steer_ratio
-    toggle.use_custom_steer_ratio = toggle.steer_ratio != stock_steer_ratio
     toggle.taco_tune = lateral_tune and self.params.get_bool("TacoTune")
     toggle.turn_desires = lateral_tune and self.params.get_bool("TurnDesires")
 
@@ -197,7 +211,6 @@ class FrogPilotVariables:
     toggle.human_acceleration = longitudinal_tune and self.params.get_bool("HumanAcceleration")
     toggle.human_following = longitudinal_tune and self.params.get_bool("HumanFollowing")
     toggle.increased_stopping_distance = self.params.get_int("StoppingDistance") * distance_conversion if longitudinal_tune else 0
-    toggle.lead_detection_threshold = self.params.get_int("LeadDetectionThreshold") / 100. if longitudinal_tune else 0.5
 
     toggle.model_manager = self.params.get_bool("ModelManagement", block=openpilot_installed)
     available_models = self.params.get("AvailableModels", block=toggle.model_manager, encoding='utf-8') or ""

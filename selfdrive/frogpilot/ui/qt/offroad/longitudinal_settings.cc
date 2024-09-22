@@ -29,7 +29,6 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
     {"HumanAcceleration", tr("Human-Like Acceleration"), tr("Tweaks the acceleration behavior to be more 'human-like'."), ""},
     {"HumanFollowing", tr("Human-Like Following Distance"), tr("Tweaks the following distance dynamically to be more 'human-like' when coming up behind slower/stopped leads or following faster leads."), ""},
     {"StoppingDistance", tr("Increase Stop Distance Behind Lead"), tr("Increase the stopping distance for a more comfortable stop from lead vehicles."), ""},
-    {"LeadDetectionThreshold", tr("Lead Detection Threshold"), tr("Increase or decrease the lead detection threshold to either detect leads sooner, or increase model confidence."), ""},
 
     {"QOLControls", tr("Quality of Life"), tr("Miscellaneous quality of life changes to improve your overall openpilot experience."), "../frogpilot/assets/toggle_icons/quality_of_life.png"},
     {"CustomCruise", tr("Cruise Increase Interval"), tr("Set a custom interval to increase the max set speed by."), ""},
@@ -142,16 +141,8 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
     } else if (param == "LongitudinalTune") {
       FrogPilotParamManageControl *longitudinalTuneToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
       QObject::connect(longitudinalTuneToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        bool radarlessModel = QString::fromStdString(params.get("RadarlessModels")).split(",").contains(QString::fromStdString(params.get("Model")));
-
         for (auto &[key, toggle] : toggles) {
-          std::set<QString> modifiedLongitudinalTuneKeys = longitudinalTuneKeys;
-
-          if (radarlessModel) {
-            modifiedLongitudinalTuneKeys.erase("LeadDetectionThreshold");
-          }
-
-          toggle->setVisible(modifiedLongitudinalTuneKeys.find(key.c_str()) != modifiedLongitudinalTuneKeys.end());
+          toggle->setVisible(longitudinalTuneKeys.find(key.c_str()) != longitudinalTuneKeys.end());
         }
 
       });
@@ -166,8 +157,6 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
       longitudinalToggle = profileSelection;
     } else if (param == "StoppingDistance") {
       longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 10, std::map<int, QString>(), this, false, tr(" feet"));
-    } else if (param == "LeadDetectionThreshold") {
-      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 99, std::map<int, QString>(), this, false, "%");
 
     } else if (param == "QOLControls") {
       FrogPilotParamManageControl *qolToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
@@ -353,18 +342,12 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
     });
   }
 
-  slcToggle = static_cast<FrogPilotParamManageControl*>(toggles["SpeedLimitController"]);
-
   QObject::connect(parent, &FrogPilotSettingsWindow::closeParentToggle, this, &FrogPilotLongitudinalPanel::hideToggles);
   QObject::connect(parent, &FrogPilotSettingsWindow::closeSubParentToggle, this, &FrogPilotLongitudinalPanel::hideSubToggles);
   QObject::connect(parent, &FrogPilotSettingsWindow::updateMetric, this, &FrogPilotLongitudinalPanel::updateMetric);
   QObject::connect(uiState(), &UIState::offroadTransition, this, &FrogPilotLongitudinalPanel::updateCarToggles);
 
   updateMetric();
-}
-
-void FrogPilotLongitudinalPanel::showEvent(QShowEvent *event) {
-  slcToggle->setEnabled(QDir("/data/media/0/osm/offline").exists());
 }
 
 void FrogPilotLongitudinalPanel::updateCarToggles() {

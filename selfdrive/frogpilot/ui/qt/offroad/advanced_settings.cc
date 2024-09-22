@@ -2,71 +2,124 @@
 
 FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) : FrogPilotListWidget(parent) {
   const std::vector<std::tuple<QString, QString, QString, QString>> advancedToggles {
-    {"CustomPersonalities", tr("Customize Personalities"), tr("Customize the driving personality profiles to your driving style."), "../frogpilot/assets/toggle_icons/icon_advanced.png"},
-    {"PersonalityInfo", tr("What Do All These Do?"), tr("Learn what all the values in 'Custom Personality Profiles' do on openpilot's driving behaviors."), ""},
+    {"AdvancedLateralTune", tr("Advanced Lateral Tuning"), tr("Advanced settings that control how openpilot manages steering."), "../frogpilot/assets/toggle_icons/icon_lateral_tune.png"},
+    {"SteerFriction", steerFrictionStock != 0 ? QString(tr("Friction (Default: %1)")).arg(QString::number(steerFrictionStock, 'f', 2)) : tr("Friction"), tr("Adjust the resistance you feel when steering."), ""},
+    {"SteerLatAccel", steerLatAccelStock != 0 ? QString(tr("Lateral Accel (Default: %1)")).arg(QString::number(steerLatAccelStock, 'f', 2)) : tr("Lateral Accel"), tr("Adjust the limit for how quickly the steering can change direction (side-to-side acceleration)."), ""},
+    {"SteerKP", steerKPStock != 0 ? QString(tr("Proportional Gain (Default: %1)")).arg(QString::number(steerKPStock, 'f', 2)) : tr("Proportional Gain"), tr("Control how strongly the car's steering reacts when it starts to deviate from the path. Higher values make the car steer more sharply but may lead to overcorrection."), ""},
+    {"SteerRatio", steerRatioStock != 0 ? QString(tr("Steer Ratio (Default: %1)")).arg(QString::number(steerRatioStock, 'f', 2)) : tr("Steer Ratio"), tr("Determine how much the steering wheel needs to turn for the vehicle to turn."), ""},
+
+    {"AdvancedLongitudinalTune", tr("Advanced Longitudinal Tuning"), tr("Advanced settings that control how openpilot manages speed and acceleration."), "../frogpilot/assets/toggle_icons/icon_longitudinal_tune.png"},
+    {"LeadDetectionThreshold", tr("Lead Detection Threshold"), tr("How sensitive openpilot is to detecting vehicles ahead. A lower value means it detects vehicles sooner and from farther away, but may occasionally mistake other objects for vehicles. A higher value makes it more cautious, reducing false positives, but possibly missing some vehicles."), ""},
+
+    {"CustomPersonalities", tr("Customize Driving Personalities"), tr("Customize the driving personality profiles."), "../frogpilot/assets/toggle_icons/icon_personality.png"},
+    {"PersonalityInfo", tr("What Do All These Do?"), tr("Learn about what each of the following settings controls."), ""},
     {"TrafficPersonalityProfile", tr("Traffic Personality"), tr("Customize the 'Traffic' personality profile."), "../frogpilot/assets/stock_theme/distance_icons/traffic.png"},
-    {"TrafficFollow", tr("Following Distance"), tr("Set the minimum following distance when using 'Traffic Mode'. Your following distance will dynamically adjust between this distance and the following distance from the 'Aggressive' profile."), ""},
-    {"TrafficJerkAcceleration", tr("Acceleration Jerk"), tr("Customize the acceleration jerk when using 'Traffic Mode'."), ""},
-    {"TrafficJerkDanger", tr("Danger Zone Jerk"), tr("Customize the danger zone jerk when using the 'Traffic' personality."), ""},
-    {"TrafficJerkSpeed", tr("Speed Control Jerk"), tr("Customize the speed control jerk when using 'Traffic Mode'."), ""},
-    {"ResetTrafficPersonality", tr("Reset Settings"), tr("Reset the values for the 'Traffic Mode' personality back to stock."), ""},
+    {"TrafficFollow", tr("Following Distance"), tr("Set the minimum following distance in 'Traffic Mode'. The distance adjusts dynamically between this value and the 'Aggressive' profile's distance based on your speed."), ""},
+    {"TrafficJerkAcceleration", tr("Acceleration Change Sensitivity"), tr("Adjust how quickly openpilot changes acceleration in 'Traffic Mode'."), ""},
+    {"TrafficJerkDanger", tr("Hazard Sensitivity"), tr("Adjust how cautiously openpilot responds to potential hazards in 'Traffic Mode'."), ""},
+    {"TrafficJerkSpeed", tr("Speed Control Smoothness"), tr("Adjust how smoothly the openpilot handles speed changes in 'Traffic Mode'."), ""},
+    {"ResetTrafficPersonality", tr("Reset Settings"), tr("Restore the 'Traffic Mode' settings to their default values."), ""},
+
     {"AggressivePersonalityProfile", tr("Aggressive Personality"), tr("Customize the 'Aggressive' personality profile."), "../frogpilot/assets/stock_theme/distance_icons/aggressive.png"},
-    {"AggressiveFollow", tr("Following Distance"), tr("Set the 'Aggressive' personality following distance. Represents seconds to follow behind the lead vehicle.\n\nStock: 1.25 seconds."), ""},
-    {"AggressiveJerkAcceleration", tr("Acceleration Jerk"), tr("Customize the acceleration jerk when using the 'Aggressive' personality."), ""},
-    {"AggressiveJerkDanger", tr("Danger Zone Jerk"), tr("Customize the danger zone jerk when using the 'Aggressive' personality."), ""},
-    {"AggressiveJerkSpeed", tr("Speed Control Jerk"), tr("Customize the speed control jerk when using the 'Aggressive' personality."), ""},
-    {"ResetAggressivePersonality", tr("Reset Settings"), tr("Reset the values for the 'Aggressive' personality back to stock."), ""},
+    {"AggressiveFollow", tr("Following Distance"), tr("Set the following distance for 'Aggressive' mode. This represents how many seconds you follow behind the car ahead.\n\nDefault: 1.25 seconds."), ""},
+    {"AggressiveJerkAcceleration", tr("Acceleration Change Sensitivity"), tr("Adjust how quickly openpilot changes acceleration in 'Aggressive' mode.\n\nDefault: 0.5."), ""},
+    {"AggressiveJerkDanger", tr("Hazard Sensitivity"), tr("Adjust how cautiously openpilot responds to potential hazards in 'Aggressive' mode.\n\nDefault: 1.0."), ""},
+    {"AggressiveJerkSpeed", tr("Speed Control Smoothness"), tr("Adjust how smoothly the openpilot handles speed changes in 'Aggressive' mode.\n\nDefault: 0.5."), ""},
+    {"ResetAggressivePersonality", tr("Reset Settings"), tr("Restore the 'Aggressive' settings to their default values."), ""},
+
     {"StandardPersonalityProfile", tr("Standard Personality"), tr("Customize the 'Standard' personality profile."), "../frogpilot/assets/stock_theme/distance_icons/standard.png"},
-    {"StandardFollow", tr("Following Distance"), tr("Set the 'Standard' personality following distance. Represents seconds to follow behind the lead vehicle.\n\nStock: 1.45 seconds."), ""},
-    {"StandardJerkAcceleration", tr("Acceleration Jerk"), tr("Customize the acceleration jerk when using the 'Standard' personality."), ""},
-    {"StandardJerkDanger", tr("Danger Zone Jerk"), tr("Customize the danger zone jerk when using the 'Standard' personality."), ""},
-    {"StandardJerkSpeed", tr("Speed Control Jerk"), tr("Customize the speed control jerk when using the 'Standard' personality."), ""},
-    {"ResetStandardPersonality", tr("Reset Settings"), tr("Reset the values for the 'Standard' personality back to stock."), ""},
+    {"StandardFollow", tr("Following Distance"), tr("Set the following distance for 'Standard' mode. This represents how many seconds you follow behind the car ahead.\n\nDefault: 1.45 seconds."), ""},
+    {"StandardJerkAcceleration", tr("Acceleration Change Sensitivity"), tr("Adjust how quickly openpilot changes acceleration in 'Standard' mode.\n\nDefault: 1.0."), ""},
+    {"StandardJerkDanger", tr("Hazard Sensitivity"), tr("Adjust how cautiously openpilot responds to potential hazards in 'Standard' mode.\n\nDefault: 1.0."), ""},
+    {"StandardJerkSpeed", tr("Speed Control Smoothness"), tr("Adjust how smoothly the openpilot handles speed changes in 'Standard' mode.\n\nDefault: 1.0."), ""},
+    {"ResetStandardPersonality", tr("Reset Settings"), tr("Restore the 'Standard' settings to their default values."), ""},
+
     {"RelaxedPersonalityProfile", tr("Relaxed Personality"), tr("Customize the 'Relaxed' personality profile."), "../frogpilot/assets/stock_theme/distance_icons/relaxed.png"},
-    {"RelaxedFollow", tr("Following Distance"), tr("Set the 'Relaxed' personality following distance. Represents seconds to follow behind the lead vehicle.\n\nStock: 1.75 seconds."), ""},
-    {"RelaxedJerkAcceleration", tr("Acceleration Jerk"), tr("Customize the acceleration jerk when using the 'Relaxed' personality."), ""},
-    {"RelaxedJerkDanger", tr("Danger Zone Jerk"), tr("Customize the danger zone jerk when using the 'Relaxed' personality."), ""},
-    {"RelaxedJerkSpeed", tr("Speed Control Jerk"), tr("Customize the speed control jerk when using the 'Relaxed' personality."), ""},
-    {"ResetRelaxedPersonality", tr("Reset Settings"), tr("Reset the values for the 'Relaxed' personality back to stock."), ""},
+    {"RelaxedFollow", tr("Following Distance"), tr("Set the following distance for 'Relaxed' mode. This represents how many seconds you follow behind the car ahead.\n\nDefault: 1.75 seconds."), ""},
+    {"RelaxedJerkAcceleration", tr("Acceleration Change Sensitivity"), tr("Adjust how quickly openpilot changes acceleration in 'Relaxed' mode.\n\nDefault: 1.0."), ""},
+    {"RelaxedJerkDanger", tr("Hazard Sensitivity"), tr("Adjust how cautiously openpilot responds to potential hazards in 'Relaxed' mode.\n\nDefault: 1.0."), ""},
+    {"RelaxedJerkSpeed", tr("Speed Control Smoothness"), tr("Adjust how smoothly the openpilot handles speed changes in 'Relaxed' mode.\n\nDefault: 1.0."), ""},
+    {"ResetRelaxedPersonality", tr("Reset Settings"), tr("Restore the 'Relaxed' settings to their default values."), ""},
 
-    {"DeveloperUI", tr("Developer UI"), tr("Get various detailed information of what openpilot is doing behind the scenes."), "../frogpilot/assets/toggle_icons/icon_device.png"},
-    {"BorderMetrics", tr("Border Metrics"), tr("Display metrics in onroad UI border."), ""},
-    {"FPSCounter", tr("FPS Counter"), tr("Display the 'Frames Per Second' (FPS) of your onroad UI for monitoring system performance."), ""},
-    {"LateralMetrics", tr("Lateral Metrics"), tr("Display various metrics related to the lateral performance of openpilot."), ""},
-    {"LongitudinalMetrics", tr("Longitudinal Metrics"), tr("Display various metrics related to the longitudinal performance of openpilot."), ""},
-    {"NumericalTemp", tr("Numerical Temperature Gauge"), tr("Replace the 'GOOD', 'OK', and 'HIGH' temperature statuses with a numerical temperature gauge based on the highest temperature between the memory, CPU, and GPU."), ""},
-    {"SidebarMetrics", tr("Sidebar"), tr("Display various custom metrics on the sidebar for the CPU, GPU, RAM, IP, and storage used/left."), ""},
-    {"UseSI", tr("Use International System of Units"), tr("Display relevant metrics in the SI format."), ""},
+    {"DeveloperUI", tr("Developer UI"), tr("Show detailed information about openpilot's internal operations."), "../frogpilot/assets/toggle_icons/icon_device.png"},
+    {"BorderMetrics", tr("Border Metrics"), tr("Display performance metrics around the edge of the screen."), ""},
+    {"FPSCounter", tr("FPS Counter"), tr("Show the Frames Per Second (FPS) of the on-screen display to monitor performance."), ""},
+    {"LateralMetrics", tr("Lateral Metrics"), tr("Display metrics related to steering control."), ""},
+    {"LongitudinalMetrics", tr("Longitudinal Metrics"), tr("Display metrics related to acceleration, speed, and desired following distance."), ""},
+    {"NumericalTemp", tr("Numerical Temperature Gauge"), tr("Show exact temperature readings instead of general status labels like 'GOOD', 'OK', or 'HIGH'."), ""},
+    {"SidebarMetrics", tr("Sidebar Metrics"), tr("Display system information like CPU, GPU, RAM usage, IP address, and storage space on the sidebar."), ""},
+    {"UseSI", tr("Use International System of Units"), tr("Display measurements using the metric system (SI units)."), ""},
 
-    {"LateralTune", tr("Lateral Tuning"), tr("Modify openpilot's steering behavior."), "../frogpilot/assets/toggle_icons/icon_lateral_tune.png"},
-    {"SteerRatio", steerRatioStock != 0 ? QString(tr("Steer Ratio (Default: %1)")).arg(QString::number(steerRatioStock, 'f', 2)) : tr("Steer Ratio"), tr("Use a custom steer ratio as opposed to comma's auto tune value."), ""},
-
-    {"ModelManagement", tr("Model Management"), tr("Manage openpilot's driving models."), "../assets/offroad/icon_calibration.png"},
-    {"AutomaticallyUpdateModels", tr("Automatically Update and Download Models"), tr("Automatically download models as they're updated or added to the model list."), ""},
-    {"ModelRandomizer", tr("Model Randomizer"), tr("Have a random model be selected each drive that can be reviewed at the end of each drive to find your preferred model."), ""},
-    {"ManageBlacklistedModels", tr("Manage Model Blacklist"), "Manage the models on your blacklist.", ""},
-    {"ResetScores", tr("Reset Model Scores"), tr("Reset the scores you have rated the openpilot models."), ""},
-    {"ReviewScores", tr("Review Model Scores"), tr("View the scores FrogPilot and yourself have rated the openpilot models."), ""},
-    {"DeleteModel", tr("Delete Model"), "", ""},
-    {"DownloadModel", tr("Download Model"), "", ""},
-    {"DownloadAllModels", tr("Download All Models"), "", ""},
-    {"SelectModel", tr("Select Model"), "", ""},
-    {"ResetCalibrations", tr("Reset Model Calibrations"), tr("Reset the driving model calibrations."), ""},
+    {"ModelManagement", tr("Model Management"), tr("Manage the driving models used by openpilot."), "../assets/offroad/icon_calibration.png"},
+    {"AutomaticallyUpdateModels", tr("Automatically Update and Download Models"), tr("Automatically download new or updated driving models."), ""},
+    {"ModelRandomizer", tr("Model Randomizer"), tr("A random model is selected and can be reviewed at the end of each drive to help find your preferred model."), ""},
+    {"ManageBlacklistedModels", tr("Manage Model Blacklist"), tr("Control which models are blacklisted and won't be used."), ""},
+    {"ResetScores", tr("Reset Model Scores"), tr("Clear the ratings you've given to driving models."), ""},
+    {"ReviewScores", tr("Review Model Scores"), tr("View the ratings you've assigned to driving models."), ""},
+    {"DeleteModel", tr("Delete Model"), tr("Remove a specific driving model from your device."), ""},
+    {"DownloadModel", tr("Download Model"), tr("Download a specific driving model."), ""},
+    {"DownloadAllModels", tr("Download All Models"), tr("Download all available driving models."), ""},
+    {"SelectModel", tr("Select Model"), tr("Choose which driving model to use."), ""},
+    {"ResetCalibrations", tr("Reset Model Calibrations"), tr("Reset calibration settings for the driving models."), ""},
 
     {"ModelUI", tr("Model UI"), tr("Customize the model visualizations on the screen."), "../assets/offroad/icon_calibration.png"},
-    {"DynamicPathWidth", tr("Dynamic Path Width"), tr("Have the path width dynamically adjust based on the current engagement state of openpilot."), ""},
-    {"HideLeadMarker", tr("Hide Lead Marker"), tr("Hide the lead marker from the onroad UI."), ""},
-    {"LaneLinesWidth", tr("Lane Lines"), tr("Adjust the visual thickness of lane lines on your display.\n\nDefault matches the MUTCD average of 4 inches."), ""},
-    {"PathEdgeWidth", tr("Path Edges"), tr("Adjust the width of the path edges shown on your UI to represent different driving modes and statuses.\n\nDefault is 20% of the total path.\n\nBlue = Navigation\nLight Blue = 'Always On Lateral'\nGreen = Default\nOrange = 'Experimental Mode'\nRed = 'Traffic Mode'\nYellow = 'Conditional Experimental Mode' Overridden"), ""},
-    {"PathWidth", tr("Path Width"), tr("Customize the width of the driving path shown on your UI.\n\nDefault matches the width of a 2019 Lexus ES 350."), ""},
-    {"RoadEdgesWidth", tr("Road Edges"), tr("Adjust the visual thickness of road edges on your display.\n\nDefault is 1/2 of the MUTCD average lane line width of 4 inches."), ""},
-    {"UnlimitedLength", tr("'Unlimited' Road UI Length"), tr("Extend the display of the path, lane lines, and road edges out as far as the model can see."), ""},
+    {"DynamicPathWidth", tr("Dynamic Path Width"), tr("Automatically adjust the width of the driving path display based on openpilot's engagement state."), ""},
+    {"HideLeadMarker", tr("Hide Lead Marker"), tr("Do not display the marker for the vehicle ahead on the screen."), ""},
+    {"LaneLinesWidth", tr("Lane Lines Width"), tr("Adjust how thick the lane lines appear on the display.\n\nDefault matches the MUTCD standard of 4 inches."), ""},
+    {"PathEdgeWidth", tr("Path Edges Width"), tr("Adjust the width of the edges of the driving path to represent different modes and statuses.\n\nDefault is 20% of the total path width.\n\nColor Guide:\n- Blue: Navigation\n- Light Blue: 'Always On Lateral'\n- Green: Default\n- Orange: 'Experimental Mode'\n- Red: 'Traffic Mode'\n- Yellow: 'Conditional Experimental Mode' Overridden"), ""},
+    {"PathWidth", tr("Path Width"), tr("Set how wide the driving path appears on your screen.\n\nDefault matches the width of a 2019 Lexus ES 350."), ""},
+    {"RoadEdgesWidth", tr("Road Edges Width"), tr("Adjust how thick the road edges appear on the display.\n\nDefault matches half of the MUTCD standard lane line width of 4 inches."), ""},
+    {"UnlimitedLength", tr("'Unlimited' Road UI Length"), tr("Extend the display of the path, lane lines, and road edges as far as the model can see."), ""},
   };
 
   for (const auto &[param, title, desc, icon] : advancedToggles) {
     AbstractControl *advancedToggle;
 
-    if (param == "CustomPersonalities") {
+    if (param == "AdvancedLateralTune") {
+      FrogPilotParamManageControl *lateralTuneToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
+      QObject::connect(lateralTuneToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
+        for (auto &[key, toggle] : toggles) {
+          toggle->setVisible(lateralTuneKeys.find(key.c_str()) != lateralTuneKeys.end());
+        }
+      });
+      advancedToggle = lateralTuneToggle;
+    } else if (param == "SteerFriction") {
+      std::vector<QString> steerFrictionToggles{"ResetSteerFriction"};
+      std::vector<QString> steerFrictionToggleNames{"Reset"};
+      advancedToggle = new FrogPilotParamValueToggleControl(param, title, desc, icon, steerFrictionStock * 0.25, steerFrictionStock * 1.25, std::map<int, QString>(), this, false, "", 1, 0.001, steerFrictionToggles, steerFrictionToggleNames, false);
+    } else if (param == "SteerLatAccel") {
+      std::vector<QString> steerLatAccelToggles{"ResetSteerLatAccel"};
+      std::vector<QString> steerLatAccelToggleNames{"Reset"};
+      advancedToggle = new FrogPilotParamValueToggleControl(param, title, desc, icon, steerLatAccelStock * 0.25, steerLatAccelStock * 1.25, std::map<int, QString>(), this, false, "", 1, 0.001, steerLatAccelToggles, steerLatAccelToggleNames, false);
+    } else if (param == "SteerKP") {
+      std::vector<QString> steerKPToggles{"ResetSteerKP"};
+      std::vector<QString> steerKPToggleNames{"Reset"};
+      advancedToggle = new FrogPilotParamValueToggleControl(param, title, desc, icon, steerKPStock * 0.50, steerKPStock * 1.50, std::map<int, QString>(), this, false, "", 1, 0.01, steerKPToggles, steerKPToggleNames, false);
+    } else if (param == "SteerRatio") {
+      std::vector<QString> steerRatioToggles{"ResetSteerRatio"};
+      std::vector<QString> steerRatioToggleNames{"Reset"};
+      advancedToggle = new FrogPilotParamValueToggleControl(param, title, desc, icon, steerRatioStock * 0.75, steerRatioStock * 1.25, std::map<int, QString>(), this, false, "", 1, 0.01, steerRatioToggles, steerRatioToggleNames, false);
+
+    } else if (param == "AdvancedLongitudinalTune") {
+      FrogPilotParamManageControl *longitudinalTuneToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
+      QObject::connect(longitudinalTuneToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
+        bool radarlessModel = QString::fromStdString(params.get("RadarlessModels")).split(",").contains(QString::fromStdString(params.get("Model")));
+
+        for (auto &[key, toggle] : toggles) {
+          std::set<QString> modifiedLongitudinalTuneKeys = longitudinalTuneKeys;
+
+          if (radarlessModel) {
+            modifiedLongitudinalTuneKeys.erase("LeadDetectionThreshold");
+          }
+
+          toggle->setVisible(modifiedLongitudinalTuneKeys.find(key.c_str()) != modifiedLongitudinalTuneKeys.end());
+        }
+      });
+      advancedToggle = longitudinalTuneToggle;
+    } else if (param == "LeadDetectionThreshold") {
+      advancedToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 99, std::map<int, QString>(), this, false, "%");
+
+    } else if (param == "CustomPersonalities") {
       FrogPilotParamManageControl *customPersonalitiesToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
       QObject::connect(customPersonalitiesToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
         for (auto &[key, toggle] : toggles) {
@@ -203,19 +256,6 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
         sidebarMetricsToggle->refresh();
       });
       advancedToggle = sidebarMetricsToggle;
-
-    } else if (param == "LateralTune") {
-      FrogPilotParamManageControl *lateralTuneToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(lateralTuneToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(lateralTuneKeys.find(key.c_str()) != lateralTuneKeys.end());
-        }
-      });
-      advancedToggle = lateralTuneToggle;
-    } else if (param == "SteerRatio") {
-      std::vector<QString> steerRatioToggles{"ResetSteerRatio"};
-      std::vector<QString> steerRatioToggleNames{"Reset"};
-      advancedToggle = new FrogPilotParamValueToggleControl(param, title, desc, icon, steerRatioStock * 0.75, steerRatioStock * 1.25, std::map<int, QString>(), this, false, "", 1, 0.01, steerRatioToggles, steerRatioToggleNames);
 
     } else if (param == "ModelManagement") {
       FrogPilotParamManageControl *modelManagementToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
@@ -602,6 +642,27 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
     }
   });
 
+  steerFrictionToggle = static_cast<FrogPilotParamValueToggleControl*>(toggles["SteerFriction"]);
+  QObject::connect(steerFrictionToggle, &FrogPilotParamValueToggleControl::buttonClicked, this, [this]() {
+    params.putFloat("SteerFriction", steerFrictionStock);
+    steerFrictionToggle->refresh();
+    updateFrogPilotToggles();
+  });
+
+  steerLatAccelToggle = static_cast<FrogPilotParamValueToggleControl*>(toggles["SteerLatAccel"]);
+  QObject::connect(steerLatAccelToggle, &FrogPilotParamValueToggleControl::buttonClicked, this, [this]() {
+    params.putFloat("SteerLatAccel", steerLatAccelStock);
+    steerLatAccelToggle->refresh();
+    updateFrogPilotToggles();
+  });
+
+  steerKPToggle = static_cast<FrogPilotParamValueToggleControl*>(toggles["SteerKP"]);
+  QObject::connect(steerKPToggle, &FrogPilotParamValueToggleControl::buttonClicked, this, [this]() {
+    params.putFloat("SteerKP", steerKPStock);
+    steerKPToggle->refresh();
+    updateFrogPilotToggles();
+  });
+
   steerRatioToggle = static_cast<FrogPilotParamValueToggleControl*>(toggles["SteerRatio"]);
   QObject::connect(steerRatioToggle, &FrogPilotParamValueToggleControl::buttonClicked, this, [this]() {
     params.putFloat("SteerRatio", steerRatioStock);
@@ -718,6 +779,11 @@ void FrogPilotAdvancedPanel::updateState(const UIState &s) {
 }
 
 void FrogPilotAdvancedPanel::updateCarToggles() {
+  float currentFrictionStock = params.getFloat("SteerFrictionStock");
+  float currentLatAccelStock = params.getFloat("SteerLatAccelStock");
+  float currentKPStock = params.getFloat("SteerKPStock");
+  float currentRatioStock = params.getFloat("SteerRatioStock");
+
   auto carParams = params.get("CarParamsPersistent");
   if (!carParams.empty()) {
     AlignedBuffer aligned_buf;
@@ -727,11 +793,42 @@ void FrogPilotAdvancedPanel::updateCarToggles() {
 
     hasAutoTune = (carName == "hyundai" || carName == "toyota") && CP.getLateralTuning().which() == cereal::CarParams::LateralTuning::TORQUE;
     hasOpenpilotLongitudinal = hasLongitudinalControl(CP);
+    steerFrictionStock = CP.getLateralTuning().getTorque().getFriction();
+    steerLatAccelStock = CP.getLateralTuning().getTorque().getLatAccelFactor();
+    steerKPStock = CP.getLateralTuning().getTorque().getKp();
     steerRatioStock = CP.getSteerRatio();
+
+    steerFrictionToggle->setTitle(QString(tr("Friction (Default: %1)")).arg(QString::number(steerFrictionStock, 'f', 2)));
+    steerFrictionToggle->updateControl(steerFrictionStock * 0.75, steerFrictionStock * 1.25, "", 0.001);
+    steerFrictionToggle->refresh();
+    if (currentFrictionStock != steerFrictionStock) {
+      params.putFloat("SteerFriction", steerFrictionStock);
+      params.putFloat("SteerFrictionStock", steerFrictionStock);
+    }
+
+    steerLatAccelToggle->setTitle(QString(tr("Lateral Accel (Default: %1)")).arg(QString::number(steerLatAccelStock, 'f', 2)));
+    steerLatAccelToggle->updateControl(steerLatAccelStock * 0.75, steerLatAccelStock * 1.25, "", 0.001);
+    steerLatAccelToggle->refresh();
+    if (currentLatAccelStock != steerLatAccelStock) {
+      params.putFloat("SteerLatAccel", steerLatAccelStock);
+      params.putFloat("SteerLatAccelStock", steerLatAccelStock);
+    }
+
+    steerKPToggle->setTitle(QString(tr("Proportional Gain (Default: %1)")).arg(QString::number(steerKPStock, 'f', 2)));
+    steerKPToggle->updateControl(steerKPStock * 0.50, currentKPStock * 1.50, "", 0.01);
+    steerKPToggle->refresh();
+    if (currentKPStock != steerKPStock) {
+      params.putFloat("SteerKP", steerKPStock);
+      params.putFloat("SteerKPStock", steerKPStock);
+    }
 
     steerRatioToggle->setTitle(QString(tr("Steer Ratio (Default: %1)")).arg(QString::number(steerRatioStock, 'f', 2)));
     steerRatioToggle->updateControl(steerRatioStock * 0.75, steerRatioStock * 1.25, "", 0.01);
     steerRatioToggle->refresh();
+    if (currentRatioStock != steerRatioStock) {
+      params.putFloat("SteerRatio", steerRatioStock);
+      params.putFloat("SteerRatioStock", steerRatioStock);
+    }
   } else {
     hasAutoTune = true;
     hasOpenpilotLongitudinal = true;
@@ -907,6 +1004,7 @@ void FrogPilotAdvancedPanel::hideToggles() {
                       customDrivingPersonalityKeys.find(key.c_str()) != customDrivingPersonalityKeys.end() ||
                       developerUIKeys.find(key.c_str()) != developerUIKeys.end() ||
                       lateralTuneKeys.find(key.c_str()) != lateralTuneKeys.end() ||
+                      longitudinalTuneKeys.find(key.c_str()) != longitudinalTuneKeys.end() ||
                       modelManagementKeys.find(key.c_str()) != modelManagementKeys.end() ||
                       modelRandomizerKeys.find(key.c_str()) != modelRandomizerKeys.end() ||
                       modelUIKeys.find(key.c_str()) != modelUIKeys.end() ||

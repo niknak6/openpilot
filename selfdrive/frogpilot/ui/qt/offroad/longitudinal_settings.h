@@ -17,18 +17,15 @@ signals:
 private:
   void hideSubToggles();
   void hideToggles();
-  void showEvent(QShowEvent *event);
   void updateCarToggles();
   void updateMetric();
 
   FrogPilotButtonsControl *curveDetectionBtn;
 
-  ToggleControl *slcToggle;
-
   std::set<QString> conditionalExperimentalKeys = {"CESpeed", "CESpeedLead", "CECurves", "CELead", "CEModelStopTime", "CENavigation", "CESignal", "HideCEMStatusBar"};
   std::set<QString> curveSpeedKeys = {"CurveDetectionMethod", "CurveSensitivity", "DisableCurveSpeedSmoothing", "MTSCCurvatureCheck", "TurnAggressiveness"};
   std::set<QString> experimentalModeActivationKeys = {"ExperimentalModeViaDistance", "ExperimentalModeViaLKAS", "ExperimentalModeViaTap"};
-  std::set<QString> longitudinalTuneKeys = {"AccelerationProfile", "DecelerationProfile", "HumanAcceleration", "HumanFollowing", "LeadDetectionThreshold", "StoppingDistance"};
+  std::set<QString> longitudinalTuneKeys = {"AccelerationProfile", "DecelerationProfile", "HumanAcceleration", "HumanFollowing", "StoppingDistance"};
   std::set<QString> qolKeys = {"CustomCruise", "CustomCruiseLong", "ForceStandstill", "MapGears", "OnroadDistanceButton", "ReverseCruise", "SetSpeedOffset"};
   std::set<QString> speedLimitControllerKeys = {"SLCControls", "SLCQOL", "SLCVisuals"};
   std::set<QString> speedLimitControllerControlsKeys = {"Offset1", "Offset2", "Offset3", "Offset4", "SLCFallback", "SLCOverride", "SLCPriority"};

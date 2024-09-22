@@ -401,9 +401,9 @@ void ui_update_frogpilot_params(UIState *s, Params &params) {
   bool lane_detection = params.getBool("NudgelessLaneChange") && params.getInt("LaneDetectionWidth") != 0;
   scene.lane_detection_width = lane_detection ? params.getInt("LaneDetectionWidth") * (scene.is_metric ? 1 : FOOT_TO_METER) / 10.0f : 2.75f;
 
-  bool longitudinal_tune = scene.longitudinal_control && params.getBool("LongitudinalTune");
+  bool advanced_longitudinal_tune = scene.longitudinal_control && params.getBool("AdvancedLongitudinalTune");
   bool radarless_model = params.get("Model") == "radical-turtle";
-  scene.lead_detection_threshold = longitudinal_tune && !radarless_model ? params.getInt("LeadDetectionThreshold") / 100.0f : 0.5;
+  scene.lead_detection_threshold = advanced_longitudinal_tune && !radarless_model ? params.getInt("LeadDetectionThreshold") / 100.0f : 0.5;
 
   bool model_manager = params.getBool("ModelManagement");
   scene.model_randomizer = model_manager && params.getBool("ModelRandomizer");

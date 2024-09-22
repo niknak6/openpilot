@@ -67,8 +67,8 @@ FrogPilotSettingsWindow::FrogPilotSettingsWindow(SettingsWindow *parent) : QFram
     tr("Control how FrogPilot handles your vehicle's acceleration and braking."),
     tr("Control FrogPilot's sounds and alerts."),
     tr("Modify the appearance of FrogPilot."),
-    tr("Download offline maps and manage 'Navigate On openpilot (NOO)' settings."),
     tr("Control how FrogPilot handles your vehicle's steering."),
+    tr("Download offline maps and manage 'Navigate On openpilot (NOO)' settings."),
     tr("Tools and system utilities for maintaining and troubleshooting FrogPilot."),
     tr("Configure settings specific to your vehicle's make and model.")
   };

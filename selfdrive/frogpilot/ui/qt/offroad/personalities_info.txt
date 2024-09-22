@@ -1,26 +1,26 @@
 Following Distance:
-Represents the desired time-based distance from the lead vehicle in seconds. This value adjusts how closely openpilot follows the car in front. It is not an exact value but a more representative value.
+Specifies the desired time gap, in seconds, that openpilot aims to maintain behind the lead vehicle. This parameter adjusts how closely your car follows the vehicle in front, ensuring a safe following distance that scales with your speed.
 
-Real-World Example: If this value is set to 1.5 seconds, and you’re driving at 50 mph (80 kph), openpilot aims to keep a distance of about 110 feet (33.5 meters) from the car in front. It means if the car in front suddenly stops, you have 1.5 seconds to react and stop safely.
+Real-World Example: If this value is set to 1.5 seconds and you're traveling at 50 mph (80 km/h), openpilot will strive to keep approximately 110 feet (33.5 meters) behind the car ahead.
 
-Acceleration Jerk:
-Controls how quickly the car speeds up or slows down.
+Acceleration Change Sensitivity:
+Controls the penalty applied for changes in acceleration, influencing how smoothly the car accelerates or decelerates. A higher value makes openpilot more reluctant to change acceleration abruptly, resulting in a smoother ride.
 
-Real-World Example: If you like your rides to be smooth and gentle, you can set this value higher. So, if the car in front speeds up or slows down suddenly, openpilot will change its speed more slowly to avoid jerky movements.
+Real-World Example: With a higher value, openpilot will accelerate and decelerate more gradually, avoiding sudden jerks. A lower value allows for quicker acceleration and deceleration, which might feel less smooth.
 
-Danger Zone Jerk:
-How careful the car is when it gets close to other cars or obstacles.
+Hazard Sensitivity:
+Adjusts the penalty for getting too close to other vehicles or obstacles. A higher value makes openpilot more cautious when approaching other cars or obstacles, prioritizing safety by maintaining a safer distance.
 
-Real-World Example: If there’s a much slower car ahead of you, setting a higher danger zone will make openpilot more cautious. It will brake sooner and harder if the speed difference is big or the distance is small, making sure you don’t get too close too quickly.
+Real-World Example: If there's a much slower car ahead, a higher value will cause openpilot to start braking sooner and more assertively, ensuring you don't approach the vehicle too quickly and maintain a safe buffer.
 
-Speed Control Jerk:
-How smoothly the car changes its speed overall.
+Speed Control Smoothness:
+Controls the penalty on the rate of change of acceleration, promoting smoother transitions when changing speed.
 
-Real-World Example: If you set this value higher, openpilot will change the car's speed more gradually to adjust to higher/lower speed limits and other speed change conditions where there's no lead. So, when you need to speed up to match the set cruise speed or slow down because of traffic, openpilot will do it gently, making the ride smoother.
+Real-World Example: Increasing the value will make openpilot change speeds more gently when accelerating to match cruise speed or decelerating due to traffic, resulting in a smoother ride with fewer abrupt movements.
 
 In Summary:
 
-Following Distance: Sets how far to stay behind the car in front, based on time.
-Acceleration Jerk: Controls how smoothly the car changes speed.
-Danger Zone Jerk: Adjusts how cautious the car is when getting close to other cars or obstacles.
-Speed Control Jerk: Controls the overall smoothness of speed changes when there's no lead in front.
+Following Distance: Sets the desired time gap to maintain behind the lead vehicle.
+Acceleration Change Sensitivity: Controls how smoothly the car accelerates or decelerates by penalizing rapid changes in acceleration.
+Hazard Sensitivity: Adjusts how cautious the car is when approaching other vehicles or obstacles by penalizing close proximity.
+Speed Control Smoothness: Controls the smoothness of acceleration changes by penalizing high rates of change in acceleration (jerk).

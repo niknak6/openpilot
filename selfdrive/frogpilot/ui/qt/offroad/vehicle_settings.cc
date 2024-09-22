@@ -150,7 +150,6 @@ FrogPilotVehiclesPanel::FrogPilotVehiclesPanel(FrogPilotSettingsWindow *parent) 
     {"ToyotaDoors", tr("Automatically Lock/Unlock Doors"), tr("Automatically lock the doors when in drive and unlock when in park."), ""},
     {"ClusterOffset", tr("Cluster Offset"), tr("Set the cluster offset openpilot uses to try and match the speed displayed on the dash."), ""},
     {"SNGHack", tr("Stop and Go Hack"), tr("Enable the 'Stop and Go' hack for vehicles without stock stop and go functionality."), ""},
-    {"ToyotaTune", tr("Toyota Tune"), tr("A longitudinal tune designed by comma and Cydia and tweaked by FrogsGoMoo to be perfectly tailored for FrogPilot.\n\nBenefits:\n\n- Accelerates quicker\n- Brakes smoother and attempts to \"coast\" a bit more\n- Comes to a complete standstill more smoothly\n- Takes off from a standstill sooner"), ""},
   };
 
   for (const auto &[param, title, desc, icon] : vehicleToggles) {
@@ -180,7 +179,7 @@ FrogPilotVehiclesPanel::FrogPilotVehiclesPanel(FrogPilotSettingsWindow *parent) 
     });
   }
 
-  std::set<QString> rebootKeys = {"CrosstrekTorque", "ToyotaTune"};
+  std::set<QString> rebootKeys = {"CrosstrekTorque"};
   for (const QString &key : rebootKeys) {
     QObject::connect(static_cast<ToggleControl*>(toggles[key.toStdString().c_str()]), &ToggleControl::toggleFlipped, [this]() {
       if (started) {
@@ -263,7 +262,7 @@ void FrogPilotVehiclesPanel::hideToggles() {
   bool toyota = carMake == "Lexus" || carMake == "Toyota";
 
   std::set<QString> imprezaKeys = {"CrosstrekTorque"};
-  std::set<QString> longitudinalKeys = {"ToyotaTune", "LongPitch", "SNGHack"};
+  std::set<QString> longitudinalKeys = {"LongPitch", "SNGHack"};
   std::set<QString> sngKeys = {"SNGHack"};
   std::set<QString> voltKeys = {"VoltSNG"};
 
