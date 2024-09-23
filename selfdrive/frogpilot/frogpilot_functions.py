@@ -100,9 +100,15 @@ def handle_backup_error(error, destination, in_progress_destination, in_progress
 
 def cleanup_backup(in_progress_destination, in_progress_compressed_backup):
   if os.path.exists(in_progress_destination):
-    shutil.rmtree(in_progress_destination)
+    try:
+      shutil.rmtree(in_progress_destination)
+    except Exception as e:
+      print(f"An unexpected error occurred while trying to delete the incomplete {backup} backup: {e}")
   if os.path.exists(in_progress_compressed_backup):
-    os.remove(in_progress_compressed_backup)
+    try:
+      os.remove(in_progress_compressed_backup)
+    except Exception as e:
+      print(f"An unexpected error occurred while trying to delete the incomplete {backup} backup: {e}")
 
 def backup_frogpilot(build_metadata, params):
   minimum_backup_size = params.get_int("MinimumBackupSize")
@@ -175,6 +181,23 @@ def convert_params(params, params_storage):
 
   for key in ["CustomColors", "CustomDistanceIcons", "CustomIcons", "CustomSignals", "CustomSounds", "WheelIcon"]:
     remove_param(key)
+
+  def decrease_param(key):
+    try:
+      value = params_storage.get_float(key)
+
+      if value > 10:
+        value /= 10
+        params.put_float(key, value)
+        params_storage.put_float(key, value)
+
+    except (UnknownKeyName, ValueError):
+      pass
+    except Exception as e:
+      print(f"An error occurred when converting params: {e}")
+
+  for key in ["PathWidth"]:
+    decrease_param(key)
 
   print("Param conversion completed")
 

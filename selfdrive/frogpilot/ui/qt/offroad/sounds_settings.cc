@@ -30,9 +30,9 @@ FrogPilotSoundsPanel::FrogPilotSoundsPanel(FrogPilotSettingsWindow *parent) : Fr
       soundsToggle = alertVolumeControlToggle;
     } else if (alertVolumeControlKeys.find(param) != alertVolumeControlKeys.end()) {
       if (param == "WarningImmediateVolume") {
-        soundsToggle = new FrogPilotParamValueControl(param, title, desc, icon, 25, 100, std::map<int, QString>(), this, false, "%");
+        soundsToggle = new FrogPilotParamValueControl(param, title, desc, icon, 25, 100, "%");
       } else {
-        soundsToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 100, std::map<int, QString>(), this, false, "%");
+        soundsToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 100, "%");
       }
 
     } else if (param == "CustomAlerts") {

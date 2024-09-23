@@ -28,7 +28,7 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
     {"DecelerationProfile", tr("Deceleration Profile"), tr("Change the deceleration rate to be either sporty or eco-friendly."), ""},
     {"HumanAcceleration", tr("Human-Like Acceleration"), tr("Tweaks the acceleration behavior to be more 'human-like'."), ""},
     {"HumanFollowing", tr("Human-Like Following Distance"), tr("Tweaks the following distance dynamically to be more 'human-like' when coming up behind slower/stopped leads or following faster leads."), ""},
-    {"StoppingDistance", tr("Increase Stop Distance Behind Lead"), tr("Increase the stopping distance for a more comfortable stop from lead vehicles."), ""},
+    {"StoppingDistance", tr("Increase Stop Distance"), tr("Increase the stopping distance for a more comfortable stop from lead vehicles."), ""},
 
     {"QOLControls", tr("Quality of Life"), tr("Miscellaneous quality of life changes to improve your overall openpilot experience."), "../frogpilot/assets/toggle_icons/quality_of_life.png"},
     {"CustomCruise", tr("Cruise Increase Interval"), tr("Set a custom interval to increase the max set speed by."), ""},
@@ -71,8 +71,8 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
       });
       longitudinalToggle = conditionalExperimentalToggle;
     } else if (param == "CESpeed") {
-      FrogPilotParamValueControl *CESpeed = new FrogPilotParamValueControl(param, title, desc, icon, 0, 99, std::map<int, QString>(), this, false, tr("mph"));
-      FrogPilotParamValueControl *CESpeedLead = new FrogPilotParamValueControl("CESpeedLead", tr(" With Lead"), tr("Switch to 'Experimental Mode' below this speed when following a lead vehicle."), icon, 0, 99, std::map<int, QString>(), this, false, tr("mph"));
+      FrogPilotParamValueControl *CESpeed = new FrogPilotParamValueControl(param, title, desc, icon, 0, 99, tr("mph"), std::map<int, QString>(), 1.0, true);
+      FrogPilotParamValueControl *CESpeedLead = new FrogPilotParamValueControl("CESpeedLead", tr(" With Lead"), tr("Switch to 'Experimental Mode' below this speed when following a lead vehicle."), icon, 0, 99, tr("mph"), std::map<int, QString>(), 1.0, true);
       FrogPilotDualParamControl *conditionalSpeeds = new FrogPilotDualParamControl(CESpeed, CESpeedLead, this);
       longitudinalToggle = reinterpret_cast<AbstractControl*>(conditionalSpeeds);
     } else if (param == "CECurves") {
@@ -92,7 +92,7 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
       for (int i = 0; i <= 10; i++) {
         modelStopTimeLabels[i] = (i == 0) ? tr("Off") : QString::number(i) + " seconds";
       }
-      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 10, modelStopTimeLabels, this, false);
+      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 10, QString(), modelStopTimeLabels);
 
     } else if (param == "CurveSpeedControl") {
       FrogPilotParamManageControl *curveControlToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
@@ -121,7 +121,7 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
       });
       longitudinalToggle = reinterpret_cast<AbstractControl*>(curveDetectionBtn);
     } else if (param == "CurveSensitivity" || param == "TurnAggressiveness") {
-      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 200, std::map<int, QString>(), this, false, "%");
+      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 200, "%");
 
     } else if (param == "ExperimentalModeActivation") {
       FrogPilotParamManageControl *experimentalModeActivationToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
@@ -156,7 +156,7 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
       ButtonParamControl *profileSelection = new ButtonParamControl(param, title, desc, icon, profileOptions);
       longitudinalToggle = profileSelection;
     } else if (param == "StoppingDistance") {
-      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 10, std::map<int, QString>(), this, false, tr(" feet"));
+      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 10, tr(" feet"));
 
     } else if (param == "QOLControls") {
       FrogPilotParamManageControl *qolToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
@@ -182,9 +182,9 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
       });
       longitudinalToggle = qolToggle;
     } else if (param == "CustomCruise") {
-      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 99, std::map<int, QString>(), this, false, tr("mph"));
+      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 99, tr("mph"));
     } else if (param == "CustomCruiseLong") {
-      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 99, std::map<int, QString>(), this, false, tr("mph"));
+      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 99, tr("mph"));
     } else if (param == "ForceStandstill") {
       std::vector<QString> forceStopToggles{"ForceStops"};
       std::vector<QString> forceStopToggleNames{tr("Only For Stop Lights/Stop Signs")};
@@ -194,7 +194,7 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
       std::vector<QString> mapGearsToggleNames{tr("Acceleration"), tr("Deceleration")};
       longitudinalToggle = new FrogPilotButtonToggleControl(param, title, desc, mapGearsToggles, mapGearsToggleNames);
     } else if (param == "SetSpeedOffset") {
-      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 99, std::map<int, QString>(), this, false, tr("mph"));
+      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 99, tr("mph"));
 
     } else if (param == "SpeedLimitController") {
       FrogPilotParamManageControl *speedLimitControllerToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
@@ -242,7 +242,7 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
       std::vector<QString> slcConfirmationNames{tr("Lower Limits"), tr("Higher Limits")};
       longitudinalToggle = new FrogPilotButtonToggleControl(param, title, desc, slcConfirmationToggles, slcConfirmationNames);
     } else if (param == "SLCLookaheadHigher" || param == "SLCLookaheadLower") {
-      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 60, std::map<int, QString>(), this, false, " seconds");
+      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 60, tr(" seconds"));
     } else if (param == "SLCVisuals") {
       ButtonControl *manageSLCVisualsBtn = new ButtonControl(title, tr("MANAGE"), desc);
       QObject::connect(manageSLCVisualsBtn, &ButtonControl::clicked, [this]() {
@@ -255,7 +255,7 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
       });
       longitudinalToggle = reinterpret_cast<AbstractControl*>(manageSLCVisualsBtn);
     } else if (param == "Offset1" || param == "Offset2" || param == "Offset3" || param == "Offset4") {
-      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, -99, 99, std::map<int, QString>(), this, false, tr("mph"));
+      longitudinalToggle = new FrogPilotParamValueControl(param, title, desc, icon, -99, 99, tr("mph"));
     } else if (param == "ShowSLCOffset") {
       std::vector<QString> slcOffsetToggles{"ShowSLCOffsetUI"};
       std::vector<QString> slcOffsetToggleNames{tr("Control Via UI")};
@@ -450,16 +450,6 @@ void FrogPilotLongitudinalPanel::updateMetric() {
 
     stoppingDistanceToggle->updateControl(0, 10, tr(" feet"));
   }
-
-  ceSpeedToggle->refresh();
-  customCruiseToggle->refresh();
-  customCruiseLongToggle->refresh();
-  offset1Toggle->refresh();
-  offset2Toggle->refresh();
-  offset3Toggle->refresh();
-  offset4Toggle->refresh();
-  setSpeedOffsetToggle->refresh();
-  stoppingDistanceToggle->refresh();
 }
 
 void FrogPilotLongitudinalPanel::hideToggles() {

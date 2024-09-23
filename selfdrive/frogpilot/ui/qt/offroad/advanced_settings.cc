@@ -86,19 +86,19 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
     } else if (param == "SteerFriction") {
       std::vector<QString> steerFrictionToggles{"ResetSteerFriction"};
       std::vector<QString> steerFrictionToggleNames{"Reset"};
-      advancedToggle = new FrogPilotParamValueToggleControl(param, title, desc, icon, 0, 0.25, std::map<int, QString>(), this, false, "", 1, 0.001, steerFrictionToggles, steerFrictionToggleNames, false);
+      advancedToggle = new FrogPilotParamValueButtonControl(param, title, desc, icon, 0, 0.25, QString(), std::map<int, QString>(), 0.001, steerFrictionToggles, steerFrictionToggleNames, false);
     } else if (param == "SteerLatAccel") {
       std::vector<QString> steerLatAccelToggles{"ResetSteerLatAccel"};
       std::vector<QString> steerLatAccelToggleNames{"Reset"};
-      advancedToggle = new FrogPilotParamValueToggleControl(param, title, desc, icon, steerLatAccelStock * 0.25, steerLatAccelStock * 1.25, std::map<int, QString>(), this, false, "", 1, 0.001, steerLatAccelToggles, steerLatAccelToggleNames, false);
+      advancedToggle = new FrogPilotParamValueButtonControl(param, title, desc, icon, steerLatAccelStock * 0.25, steerLatAccelStock * 1.25, QString(), std::map<int, QString>(), 0.001, steerLatAccelToggles, steerLatAccelToggleNames, false);
     } else if (param == "SteerKP") {
       std::vector<QString> steerKPToggles{"ResetSteerKP"};
       std::vector<QString> steerKPToggleNames{"Reset"};
-      advancedToggle = new FrogPilotParamValueToggleControl(param, title, desc, icon, steerKPStock * 0.50, steerKPStock * 1.50, std::map<int, QString>(), this, false, "", 1, 0.01, steerKPToggles, steerKPToggleNames, false);
+      advancedToggle = new FrogPilotParamValueButtonControl(param, title, desc, icon, steerKPStock * 0.50, steerKPStock * 1.50, QString(), std::map<int, QString>(), 0.01, steerKPToggles, steerKPToggleNames, false);
     } else if (param == "SteerRatio") {
       std::vector<QString> steerRatioToggles{"ResetSteerRatio"};
       std::vector<QString> steerRatioToggleNames{"Reset"};
-      advancedToggle = new FrogPilotParamValueToggleControl(param, title, desc, icon, steerRatioStock * 0.75, steerRatioStock * 1.25, std::map<int, QString>(), this, false, "", 1, 0.01, steerRatioToggles, steerRatioToggleNames, false);
+      advancedToggle = new FrogPilotParamValueButtonControl(param, title, desc, icon, steerRatioStock * 0.75, steerRatioStock * 1.25, QString(), std::map<int, QString>(), 0.01, steerRatioToggles, steerRatioToggleNames, false);
 
     } else if (param == "AdvancedLongitudinalTune") {
       FrogPilotParamManageControl *longitudinalTuneToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
@@ -117,7 +117,7 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
       });
       advancedToggle = longitudinalTuneToggle;
     } else if (param == "LeadDetectionThreshold") {
-      advancedToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 99, std::map<int, QString>(), this, false, "%");
+      advancedToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 99, "%");
 
     } else if (param == "CustomPersonalities") {
       FrogPilotParamManageControl *customPersonalitiesToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
@@ -191,12 +191,12 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
                relaxedPersonalityKeys.find(param) != relaxedPersonalityKeys.end()) {
       if (param == "TrafficFollow" || param == "AggressiveFollow" || param == "StandardFollow" || param == "RelaxedFollow") {
         if (param == "TrafficFollow") {
-          advancedToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0.5, 5, std::map<int, QString>(), this, false, tr(" seconds"), 1, 0.01);
+          advancedToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0.5, 5, tr(" seconds"), std::map<int, QString>(), 0.01);
         } else {
-          advancedToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 5, std::map<int, QString>(), this, false, tr(" seconds"), 1, 0.01);
+          advancedToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 5, tr(" seconds"), std::map<int, QString>(), 0.01);
         }
       } else {
-        advancedToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 500, std::map<int, QString>(), this, false, "%");
+        advancedToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 500, "%");
       }
 
     } else if (param == "DeveloperUI") {
@@ -237,7 +237,7 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
       std::vector<QString> sidebarMetricsToggles{"ShowCPU", "ShowGPU", "ShowIP", "ShowMemoryUsage", "ShowStorageLeft", "ShowStorageUsed"};
       std::vector<QString> sidebarMetricsToggleNames{tr("CPU"), tr("GPU"), tr("IP"), tr("RAM"), tr("SSD Left"), tr("SSD Used")};
       FrogPilotButtonToggleControl *sidebarMetricsToggle = new FrogPilotButtonToggleControl(param, title, desc, sidebarMetricsToggles, sidebarMetricsToggleNames, 125);
-      QObject::connect(sidebarMetricsToggle, &FrogPilotButtonToggleControl::buttonClicked, this, [this, sidebarMetricsToggle](int index) {
+      QObject::connect(sidebarMetricsToggle, &FrogPilotButtonToggleControl::buttonClicked, this, [this](int index) {
         if (index == 0) {
           params.putBool("ShowGPU", false);
         } else if (index == 1) {
@@ -252,8 +252,6 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
           params.putBool("ShowMemoryUsage", false);
           params.putBool("ShowStorageLeft", false);
         }
-
-        sidebarMetricsToggle->refresh();
       });
       advancedToggle = sidebarMetricsToggle;
 
@@ -606,11 +604,11 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
       });
       advancedToggle = modelUIToggle;
     } else if (param == "LaneLinesWidth" || param == "RoadEdgesWidth") {
-      advancedToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 24, std::map<int, QString>(), this, false, tr(" inches"));
+      advancedToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 24, tr(" inches"));
     } else if (param == "PathEdgeWidth") {
-      advancedToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 100, std::map<int, QString>(), this, false, tr("%"));
+      advancedToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 100, tr("%"));
     } else if (param == "PathWidth") {
-      advancedToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 100, std::map<int, QString>(), this, false, tr(" feet"), 10);
+      advancedToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 10, tr(" feet"), std::map<int, QString>(), 0.1);
 
     } else {
       advancedToggle = new ParamControl(param, title, desc, icon, this);
@@ -642,29 +640,29 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
     }
   });
 
-  steerFrictionToggle = static_cast<FrogPilotParamValueToggleControl*>(toggles["SteerFriction"]);
-  QObject::connect(steerFrictionToggle, &FrogPilotParamValueToggleControl::buttonClicked, this, [this]() {
+  steerFrictionToggle = static_cast<FrogPilotParamValueButtonControl*>(toggles["SteerFriction"]);
+  QObject::connect(steerFrictionToggle, &FrogPilotParamValueButtonControl::buttonClicked, this, [this]() {
     params.putFloat("SteerFriction", steerFrictionStock);
     steerFrictionToggle->refresh();
     updateFrogPilotToggles();
   });
 
-  steerLatAccelToggle = static_cast<FrogPilotParamValueToggleControl*>(toggles["SteerLatAccel"]);
-  QObject::connect(steerLatAccelToggle, &FrogPilotParamValueToggleControl::buttonClicked, this, [this]() {
+  steerLatAccelToggle = static_cast<FrogPilotParamValueButtonControl*>(toggles["SteerLatAccel"]);
+  QObject::connect(steerLatAccelToggle, &FrogPilotParamValueButtonControl::buttonClicked, this, [this]() {
     params.putFloat("SteerLatAccel", steerLatAccelStock);
     steerLatAccelToggle->refresh();
     updateFrogPilotToggles();
   });
 
-  steerKPToggle = static_cast<FrogPilotParamValueToggleControl*>(toggles["SteerKP"]);
-  QObject::connect(steerKPToggle, &FrogPilotParamValueToggleControl::buttonClicked, this, [this]() {
+  steerKPToggle = static_cast<FrogPilotParamValueButtonControl*>(toggles["SteerKP"]);
+  QObject::connect(steerKPToggle, &FrogPilotParamValueButtonControl::buttonClicked, this, [this]() {
     params.putFloat("SteerKP", steerKPStock);
     steerKPToggle->refresh();
     updateFrogPilotToggles();
   });
 
-  steerRatioToggle = static_cast<FrogPilotParamValueToggleControl*>(toggles["SteerRatio"]);
-  QObject::connect(steerRatioToggle, &FrogPilotParamValueToggleControl::buttonClicked, this, [this]() {
+  steerRatioToggle = static_cast<FrogPilotParamValueButtonControl*>(toggles["SteerRatio"]);
+  QObject::connect(steerRatioToggle, &FrogPilotParamValueButtonControl::buttonClicked, this, [this]() {
     params.putFloat("SteerRatio", steerRatioStock);
     steerRatioToggle->refresh();
     updateFrogPilotToggles();
@@ -799,31 +797,27 @@ void FrogPilotAdvancedPanel::updateCarToggles() {
     steerRatioStock = CP.getSteerRatio();
 
     steerFrictionToggle->setTitle(QString(tr("Friction (Default: %1)")).arg(QString::number(steerFrictionStock, 'f', 2)));
-    steerFrictionToggle->refresh();
     if (currentFrictionStock != steerFrictionStock) {
       params.putFloat("SteerFriction", steerFrictionStock);
       params.putFloat("SteerFrictionStock", steerFrictionStock);
     }
 
     steerLatAccelToggle->setTitle(QString(tr("Lateral Accel (Default: %1)")).arg(QString::number(steerLatAccelStock, 'f', 2)));
-    steerLatAccelToggle->updateControl(steerLatAccelStock * 0.75, steerLatAccelStock * 1.25, "", 0.001);
-    steerLatAccelToggle->refresh();
+    steerLatAccelToggle->updateControl(steerLatAccelStock * 0.75, steerLatAccelStock * 1.25);
     if (currentLatAccelStock != steerLatAccelStock) {
       params.putFloat("SteerLatAccel", steerLatAccelStock);
       params.putFloat("SteerLatAccelStock", steerLatAccelStock);
     }
 
     steerKPToggle->setTitle(QString(tr("Proportional Gain (Default: %1)")).arg(QString::number(steerKPStock, 'f', 2)));
-    steerKPToggle->updateControl(steerKPStock * 0.50, currentKPStock * 1.50, "", 0.01);
-    steerKPToggle->refresh();
+    steerKPToggle->updateControl(steerKPStock * 0.50, currentKPStock * 1.50);
     if (currentKPStock != steerKPStock) {
       params.putFloat("SteerKP", steerKPStock);
       params.putFloat("SteerKPStock", steerKPStock);
     }
 
     steerRatioToggle->setTitle(QString(tr("Steer Ratio (Default: %1)")).arg(QString::number(steerRatioStock, 'f', 2)));
-    steerRatioToggle->updateControl(steerRatioStock * 0.75, steerRatioStock * 1.25, "", 0.01);
-    steerRatioToggle->refresh();
+    steerRatioToggle->updateControl(steerRatioStock * 0.75, steerRatioStock * 1.25);
     if (currentRatioStock != steerRatioStock) {
       params.putFloat("SteerRatio", steerRatioStock);
       params.putFloat("SteerRatioStock", steerRatioStock);
@@ -861,7 +855,7 @@ void FrogPilotAdvancedPanel::updateMetric() {
     laneLinesWidthToggle->updateControl(0, 60, tr(" centimeters"));
     roadEdgesWidthToggle->updateControl(0, 60, tr(" centimeters"));
 
-    pathWidthToggle->updateControl(0, 30, tr(" meters"), 10);
+    pathWidthToggle->updateControl(0, 3, tr(" meters"));
   } else {
     laneLinesWidthToggle->setDescription(tr("Customize the lane line width.\n\nDefault matches the MUTCD average of 4 inches."));
     roadEdgesWidthToggle->setDescription(tr("Customize the road edges width.\n\nDefault is 1/2 of the MUTCD average lane line width of 4 inches."));
@@ -869,12 +863,8 @@ void FrogPilotAdvancedPanel::updateMetric() {
     laneLinesWidthToggle->updateControl(0, 24, tr(" inches"));
     roadEdgesWidthToggle->updateControl(0, 24, tr(" inches"));
 
-    pathWidthToggle->updateControl(0, 100, tr(" feet"), 10);
+    pathWidthToggle->updateControl(0, 10, tr(" feet"));
   }
-
-  laneLinesWidthToggle->refresh();
-  pathWidthToggle->refresh();
-  roadEdgesWidthToggle->refresh();
 }
 
 void FrogPilotAdvancedPanel::startDownloadAllModels() {

@@ -413,7 +413,7 @@ void ui_update_frogpilot_params(UIState *s, Params &params) {
   scene.hide_lead_marker = scene.model_ui && params.getBool("HideLeadMarker");
   scene.lane_line_width = params.getInt("LaneLinesWidth") * (scene.is_metric ? 1.0f : INCH_TO_CM) / 200.0f;
   scene.path_edge_width = params.getInt("PathEdgeWidth");
-  scene.path_width = params.getInt("PathWidth") / 10.0f * (scene.is_metric ? 1.0f : FOOT_TO_METER) / 2.0f;
+  scene.path_width = params.getInt("PathWidth") * (scene.is_metric ? 1.0f : FOOT_TO_METER) / 2.0f;
   scene.road_edge_width = params.getInt("RoadEdgesWidth") * (scene.is_metric ? 1.0f : INCH_TO_CM) / 200.0f;
   scene.unlimited_road_ui_length = scene.model_ui && params.getBool("UnlimitedLength");
 

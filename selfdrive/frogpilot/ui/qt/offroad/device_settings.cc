@@ -27,13 +27,13 @@ FrogPilotDevicePanel::FrogPilotDevicePanel(FrogPilotSettingsWindow *parent) : Fr
       for (int i = 0; i <= 33; i++) {
         shutdownLabels[i] = i == 0 ? tr("5 mins") : i <= 3 ? QString::number(i * 15) + tr(" mins") : QString::number(i - 3) + (i == 4 ? tr(" hour") : tr(" hours"));
       }
-      deviceToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 33, shutdownLabels, this, false);
+      deviceToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 33, QString(), shutdownLabels);
     } else if (param == "NoUploads") {
       std::vector<QString> uploadsToggles{"DisableOnroadUploads"};
       std::vector<QString> uploadsToggleNames{tr("Only Onroad")};
       deviceToggle = new FrogPilotButtonToggleControl(param, title, desc, uploadsToggles, uploadsToggleNames);
     } else if (param == "LowVoltageShutdown") {
-      deviceToggle = new FrogPilotParamValueControl(param, title, desc, icon, 11.8, 12.5, std::map<int, QString>(), this, false, tr(" volts"), 1, 0.01);
+      deviceToggle = new FrogPilotParamValueControl(param, title, desc, icon, 11.8, 12.5, tr(" volts"), std::map<int, QString>(), 0.01);
 
     } else {
       deviceToggle = new ParamControl(param, title, desc, icon, this);

@@ -161,7 +161,7 @@ FrogPilotVehiclesPanel::FrogPilotVehiclesPanel(FrogPilotSettingsWindow *parent) 
       vehicleToggle = new FrogPilotButtonToggleControl(param, title, desc, lockToggles, lockToggleNames);
 
     } else if (param == "ClusterOffset") {
-      vehicleToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1.000, 1.050, std::map<int, QString>(), this, false, "x", 1, 0.001);
+      vehicleToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1.000, 1.050, "x", std::map<int, QString>(), 0.001);
 
     } else {
       vehicleToggle = new ParamControl(param, title, desc, icon, this);

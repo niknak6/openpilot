@@ -34,10 +34,10 @@ private:
   ButtonControl *downloadModelBtn;
   ButtonControl *selectModelBtn;
 
-  FrogPilotParamValueToggleControl *steerFrictionToggle;
-  FrogPilotParamValueToggleControl *steerLatAccelToggle;
-  FrogPilotParamValueToggleControl *steerKPToggle;
-  FrogPilotParamValueToggleControl *steerRatioToggle;
+  FrogPilotParamValueButtonControl *steerFrictionToggle;
+  FrogPilotParamValueButtonControl *steerLatAccelToggle;
+  FrogPilotParamValueButtonControl *steerKPToggle;
+  FrogPilotParamValueButtonControl *steerRatioToggle;
 
   std::set<QString> aggressivePersonalityKeys = {"AggressiveFollow", "AggressiveJerkAcceleration", "AggressiveJerkDanger", "AggressiveJerkSpeed", "PersonalityInfo", "ResetAggressivePersonality"};
   std::set<QString> customDrivingPersonalityKeys = {"AggressivePersonalityProfile", "RelaxedPersonalityProfile", "StandardPersonalityProfile", "TrafficPersonalityProfile"};

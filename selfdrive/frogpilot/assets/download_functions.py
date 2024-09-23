@@ -98,8 +98,12 @@ def verify_download(file_path, url, initial_download=True):
     print(f"File not found: {file_path}")
     return False
 
-  if remote_file_size != os.path.getsize(file_path):
-    print(f"File size mismatch for {file_path}")
+  try:
+    if remote_file_size != os.path.getsize(file_path):
+      print(f"File size mismatch for {file_path}")
+      return False
+  except Exception as e:
+    print(f"An unexpected error occurred while trying to verify the {file_path} download: {e}")
     return False
 
   return True

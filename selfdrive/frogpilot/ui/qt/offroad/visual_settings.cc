@@ -786,14 +786,12 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
       std::vector<QString> pedalsToggles{"DynamicPedalsOnUI", "StaticPedalsOnUI"};
       std::vector<QString> pedalsToggleNames{tr("Dynamic"), tr("Static")};
       FrogPilotButtonToggleControl *pedalsToggle = new FrogPilotButtonToggleControl(param, title, desc, pedalsToggles, pedalsToggleNames);
-      QObject::connect(pedalsToggle, &FrogPilotButtonToggleControl::buttonClicked, this, [this, pedalsToggle](int index) {
+      QObject::connect(pedalsToggle, &FrogPilotButtonToggleControl::buttonClicked, this, [this](int index) {
         if (index == 0) {
           params.putBool("StaticPedalsOnUI", false);
         } else if (index == 1) {
           params.putBool("DynamicPedalsOnUI", false);
         }
-
-        pedalsToggle->refresh();
       });
       visualToggle = pedalsToggle;
     } else if (param == "ShowStoppingPoint") {
@@ -872,15 +870,15 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
         for (int i = 0; i <= 101; i++) {
           brightnessLabels[i] = (i == 0) ? tr("Screen Off") : (i == 101) ? tr("Auto") : QString::number(i) + "%";
         }
-        visualToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 101, brightnessLabels, this, false);
+        visualToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 101, QString(), brightnessLabels);
       } else {
         for (int i = 1; i <= 101; i++) {
           brightnessLabels[i] = (i == 101) ? tr("Auto") : QString::number(i) + "%";
         }
-        visualToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 101, brightnessLabels, this, false);
+        visualToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 101, QString(), brightnessLabels);
       }
     } else if (param == "ScreenTimeout" || param == "ScreenTimeoutOnroad") {
-      visualToggle = new FrogPilotParamValueControl(param, title, desc, icon, 5, 60, std::map<int, QString>(), this, false, tr(" seconds"));
+      visualToggle = new FrogPilotParamValueControl(param, title, desc, icon, 5, 60, tr(" seconds"));
 
     } else {
       visualToggle = new ParamControl(param, title, desc, icon, this);
@@ -889,17 +887,25 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
     addItem(visualToggle);
     toggles[param.toStdString()] = visualToggle;
 
-    QObject::connect(static_cast<ToggleControl*>(visualToggle), &ToggleControl::toggleFlipped, &updateFrogPilotToggles);
-    QObject::connect(static_cast<FrogPilotButtonToggleControl*>(visualToggle), &FrogPilotButtonToggleControl::buttonClicked, &updateFrogPilotToggles);
-    QObject::connect(static_cast<FrogPilotParamValueControl*>(visualToggle), &FrogPilotParamValueControl::valueChanged, [this]() {
-      bool screen_management = params.getBool("ScreenManagement");
+    FrogPilotParamValueControl *screenBrightnessToggle = static_cast<FrogPilotParamValueControl*>(toggles["ScreenBrightness"]);
+    QObject::connect(screenBrightnessToggle, &FrogPilotParamValueControl::valueChanged, [this](float value) {
       if (!started) {
-        uiState()->scene.screen_brightness = screen_management ? params.getInt("ScreenBrightness") : 101;
-      } else {
-        uiState()->scene.screen_brightness_onroad = screen_management ? params.getInt("ScreenBrightnessOnroad") : 101;
+        uiState()->scene.screen_brightness = value;
       }
       updateFrogPilotToggles();
     });
+
+    FrogPilotParamValueControl *screenBrightnessOnroadToggle = static_cast<FrogPilotParamValueControl*>(toggles["ScreenBrightnessOnroad"]);
+    QObject::connect(screenBrightnessOnroadToggle, &FrogPilotParamValueControl::valueChanged, [this](float value) {
+      if (started) {
+        uiState()->scene.screen_brightness_onroad = value;
+      }
+      updateFrogPilotToggles();
+    });
+
+    QObject::connect(static_cast<ToggleControl*>(visualToggle), &ToggleControl::toggleFlipped, &updateFrogPilotToggles);
+    QObject::connect(static_cast<FrogPilotButtonToggleControl*>(visualToggle), &FrogPilotButtonToggleControl::buttonClicked, &updateFrogPilotToggles);
+    QObject::connect(static_cast<FrogPilotParamValueControl*>(visualToggle), &FrogPilotParamValueControl::valueChanged, &updateFrogPilotToggles);
 
     QObject::connect(visualToggle, &AbstractControl::showDescriptionEvent, [this]() {
       update();
