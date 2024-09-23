@@ -11,8 +11,6 @@
 #include "selfdrive/frogpilot/ui/qt/offroad/visual_settings.h"
 
 FrogPilotSettingsWindow::FrogPilotSettingsWindow(SettingsWindow *parent) : QFrame(parent) {
-  setFixedHeight(1080 - 25);
-
   mainLayout = new QStackedLayout(this);
 
   frogpilotSettingsWidget = new QWidget(this);
@@ -101,20 +99,25 @@ FrogPilotSettingsWindow::FrogPilotSettingsWindow(SettingsWindow *parent) : QFram
 }
 
 void FrogPilotSettingsWindow::addPanelControl(FrogPilotListWidget *list, const QString &title, const QString &desc, const std::vector<QString> &button_labels, const QString &icon, const std::vector<QWidget*> &panels) {
+  std::vector<QWidget*> panelContainers;
+  panelContainers.reserve(panels.size());
+
   for (QWidget *panel : panels) {
-    if (panel) {
-      QWidget *panelContainer = new QWidget(this);
-      QVBoxLayout *panelLayout = new QVBoxLayout(panelContainer);
-      panelLayout->setContentsMargins(50, 25, 50, 25);
-      panelLayout->addWidget(panel);
-      mainLayout->addWidget(panelContainer);
-    }
+    QWidget *panelContainer = new QWidget(this);
+    QVBoxLayout *panelLayout = new QVBoxLayout(panelContainer);
+    panelLayout->setContentsMargins(50, 25, 50, 25);
+    panelLayout->addWidget(panel);
+    panelContainers.push_back(panelContainer);
   }
 
   FrogPilotButtonsControl *button = new FrogPilotButtonsControl(title, desc, button_labels, false, true, icon);
-  QObject::connect(button, &FrogPilotButtonsControl::buttonClicked, [this, panels](int buttonId) {
-    if (buttonId < panels.size() && panels[buttonId]) {
-      mainLayout->setCurrentWidget(panels[buttonId]->parentWidget());
+  QObject::connect(button, &FrogPilotButtonsControl::buttonClicked, [this, panelContainers](int buttonId) {
+    if (buttonId < panelContainers.size()) {
+      QWidget *selectedPanel = panelContainers[buttonId];
+      if (mainLayout->indexOf(selectedPanel) == -1) {
+        mainLayout->addWidget(selectedPanel);
+      }
+      mainLayout->setCurrentWidget(selectedPanel);
     }
     openPanel();
   });

@@ -86,7 +86,7 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
     } else if (param == "SteerFriction") {
       std::vector<QString> steerFrictionToggles{"ResetSteerFriction"};
       std::vector<QString> steerFrictionToggleNames{"Reset"};
-      advancedToggle = new FrogPilotParamValueToggleControl(param, title, desc, icon, steerFrictionStock * 0.25, steerFrictionStock * 1.25, std::map<int, QString>(), this, false, "", 1, 0.001, steerFrictionToggles, steerFrictionToggleNames, false);
+      advancedToggle = new FrogPilotParamValueToggleControl(param, title, desc, icon, 0, 0.25, std::map<int, QString>(), this, false, "", 1, 0.001, steerFrictionToggles, steerFrictionToggleNames, false);
     } else if (param == "SteerLatAccel") {
       std::vector<QString> steerLatAccelToggles{"ResetSteerLatAccel"};
       std::vector<QString> steerLatAccelToggleNames{"Reset"};
@@ -799,7 +799,6 @@ void FrogPilotAdvancedPanel::updateCarToggles() {
     steerRatioStock = CP.getSteerRatio();
 
     steerFrictionToggle->setTitle(QString(tr("Friction (Default: %1)")).arg(QString::number(steerFrictionStock, 'f', 2)));
-    steerFrictionToggle->updateControl(steerFrictionStock * 0.75, steerFrictionStock * 1.25, "", 0.001);
     steerFrictionToggle->refresh();
     if (currentFrictionStock != steerFrictionStock) {
       params.putFloat("SteerFriction", steerFrictionStock);
