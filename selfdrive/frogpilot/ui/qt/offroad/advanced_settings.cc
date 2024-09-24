@@ -4,41 +4,40 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
   const std::vector<std::tuple<QString, QString, QString, QString>> advancedToggles {
     {"AdvancedLateralTune", tr("Advanced Lateral Tuning"), tr("Advanced settings that control how openpilot manages steering."), "../frogpilot/assets/toggle_icons/icon_lateral_tune.png"},
     {"SteerFriction", steerFrictionStock != 0 ? QString(tr("Friction (Default: %1)")).arg(QString::number(steerFrictionStock, 'f', 2)) : tr("Friction"), tr("Adjust the resistance you feel when steering."), ""},
+    {"SteerKP", steerKPStock != 0 ? QString(tr("Kp Factor (Default: %1)")).arg(QString::number(steerKPStock, 'f', 2)) : tr("Kp Factor"), tr("Control how strongly the car's steering reacts when it starts to deviate from the path. Higher values make the car steer more sharply but may lead to overcorrection."), ""},
     {"SteerLatAccel", steerLatAccelStock != 0 ? QString(tr("Lateral Accel (Default: %1)")).arg(QString::number(steerLatAccelStock, 'f', 2)) : tr("Lateral Accel"), tr("Adjust the limit for how quickly the steering can change direction (side-to-side acceleration)."), ""},
-    {"SteerKP", steerKPStock != 0 ? QString(tr("Proportional Gain (Default: %1)")).arg(QString::number(steerKPStock, 'f', 2)) : tr("Proportional Gain"), tr("Control how strongly the car's steering reacts when it starts to deviate from the path. Higher values make the car steer more sharply but may lead to overcorrection."), ""},
     {"SteerRatio", steerRatioStock != 0 ? QString(tr("Steer Ratio (Default: %1)")).arg(QString::number(steerRatioStock, 'f', 2)) : tr("Steer Ratio"), tr("Determine how much the steering wheel needs to turn for the vehicle to turn."), ""},
 
     {"AdvancedLongitudinalTune", tr("Advanced Longitudinal Tuning"), tr("Advanced settings that control how openpilot manages speed and acceleration."), "../frogpilot/assets/toggle_icons/icon_longitudinal_tune.png"},
-    {"LeadDetectionThreshold", tr("Lead Detection Threshold"), tr("How sensitive openpilot is to detecting vehicles ahead. A lower value means it detects vehicles sooner and from farther away, but may occasionally mistake other objects for vehicles. A higher value makes it more cautious, reducing false positives, but possibly missing some vehicles."), ""},
+    {"LeadDetectionThreshold", tr("Lead Detection Threshold"), tr("How sensitive openpilot is to detecting vehicles ahead. A lower value means it detects vehicles sooner and from farther away, but may occasionally mistake other objects for vehicles. A higher value requires it to be more confident if what it's detecting is actually a vehicle or not, reducing false positives, but at the risk of potentially missing some vehicles or detecting them too late."), ""},
 
     {"CustomPersonalities", tr("Customize Driving Personalities"), tr("Customize the driving personality profiles."), "../frogpilot/assets/toggle_icons/icon_personality.png"},
-    {"PersonalityInfo", tr("What Do All These Do?"), tr("Learn about what each of the following settings controls."), ""},
     {"TrafficPersonalityProfile", tr("Traffic Personality"), tr("Customize the 'Traffic' personality profile."), "../frogpilot/assets/stock_theme/distance_icons/traffic.png"},
     {"TrafficFollow", tr("Following Distance"), tr("Set the minimum following distance in 'Traffic Mode'. The distance adjusts dynamically between this value and the 'Aggressive' profile's distance based on your speed."), ""},
-    {"TrafficJerkAcceleration", tr("Acceleration Change Sensitivity"), tr("Adjust how quickly openpilot changes acceleration in 'Traffic Mode'."), ""},
-    {"TrafficJerkDanger", tr("Hazard Sensitivity"), tr("Adjust how cautiously openpilot responds to potential hazards in 'Traffic Mode'."), ""},
-    {"TrafficJerkSpeed", tr("Speed Control Smoothness"), tr("Adjust how smoothly the openpilot handles speed changes in 'Traffic Mode'."), ""},
+    {"TrafficJerkAcceleration", tr("Acceleration Change Sensitivity"), tr("Controls the penalty applied for changes in acceleration while in 'Traffic Mode'. This influences how smoothly the car accelerates or decelerates. A higher value makes openpilot more reluctant to change acceleration abruptly, resulting in a smoother ride."), ""},
+    {"TrafficJerkDanger", tr("Hazard Sensitivity"), tr("Adjusts the penalty for getting too close to other vehicles or obstacles while in 'Traffic Mode'. A higher value makes openpilot more cautious when approaching other cars or obstacles, prioritizing safety by maintaining a safer distance."), ""},
+    {"TrafficJerkSpeed", tr("Speed Control Smoothness"), tr("Controls the penalty on the rate of change of acceleration while in 'Traffic Mode'. A higher value promotes smoother but slower transitions when changing speed."), ""},
     {"ResetTrafficPersonality", tr("Reset Settings"), tr("Restore the 'Traffic Mode' settings to their default values."), ""},
 
     {"AggressivePersonalityProfile", tr("Aggressive Personality"), tr("Customize the 'Aggressive' personality profile."), "../frogpilot/assets/stock_theme/distance_icons/aggressive.png"},
     {"AggressiveFollow", tr("Following Distance"), tr("Set the following distance for 'Aggressive' mode. This represents how many seconds you follow behind the car ahead.\n\nDefault: 1.25 seconds."), ""},
-    {"AggressiveJerkAcceleration", tr("Acceleration Change Sensitivity"), tr("Adjust how quickly openpilot changes acceleration in 'Aggressive' mode.\n\nDefault: 0.5."), ""},
-    {"AggressiveJerkDanger", tr("Hazard Sensitivity"), tr("Adjust how cautiously openpilot responds to potential hazards in 'Aggressive' mode.\n\nDefault: 1.0."), ""},
-    {"AggressiveJerkSpeed", tr("Speed Control Smoothness"), tr("Adjust how smoothly the openpilot handles speed changes in 'Aggressive' mode.\n\nDefault: 0.5."), ""},
+    {"AggressiveJerkAcceleration", tr("Acceleration Change Sensitivity"), tr("Controls the penalty applied for changes in acceleration while using the 'Aggressive' profile personality. This influences how smoothly the car accelerates or decelerates. A higher value makes openpilot more reluctant to change acceleration abruptly, resulting in a smoother ride.\n\nDefault: 0.5."), ""},
+    {"AggressiveJerkDanger", tr("Hazard Sensitivity"), tr("Adjusts the penalty for getting too close to other vehicles or obstacles while using the 'Aggressive' personality profile. A higher value makes openpilot more cautious when approaching other cars or obstacles, prioritizing safety by maintaining a safer distance.\n\nDefault: 1.0."), ""},
+    {"AggressiveJerkSpeed", tr("Speed Control Smoothness"), tr("Controls the penalty on the rate of change of acceleration while using the 'Standard' personality profile. A higher value promotes smoother but slower transitions when changing speed.\n\nDefault: 0.5."), ""},
     {"ResetAggressivePersonality", tr("Reset Settings"), tr("Restore the 'Aggressive' settings to their default values."), ""},
 
     {"StandardPersonalityProfile", tr("Standard Personality"), tr("Customize the 'Standard' personality profile."), "../frogpilot/assets/stock_theme/distance_icons/standard.png"},
     {"StandardFollow", tr("Following Distance"), tr("Set the following distance for 'Standard' mode. This represents how many seconds you follow behind the car ahead.\n\nDefault: 1.45 seconds."), ""},
-    {"StandardJerkAcceleration", tr("Acceleration Change Sensitivity"), tr("Adjust how quickly openpilot changes acceleration in 'Standard' mode.\n\nDefault: 1.0."), ""},
-    {"StandardJerkDanger", tr("Hazard Sensitivity"), tr("Adjust how cautiously openpilot responds to potential hazards in 'Standard' mode.\n\nDefault: 1.0."), ""},
-    {"StandardJerkSpeed", tr("Speed Control Smoothness"), tr("Adjust how smoothly the openpilot handles speed changes in 'Standard' mode.\n\nDefault: 1.0."), ""},
+    {"StandardJerkAcceleration", tr("Acceleration Change Sensitivity"), tr("Controls the penalty applied for changes in acceleration while using the 'Standard' profile personality. This influences how smoothly the car accelerates or decelerates. A higher value makes openpilot more reluctant to change acceleration abruptly, resulting in a smoother ride.\n\nDefault: 1.0."), ""},
+    {"StandardJerkDanger", tr("Hazard Sensitivity"), tr("Adjusts the penalty for getting too close to other vehicles or obstacles while using the 'Standard' personality profile. A higher value makes openpilot more cautious when approaching other cars or obstacles, prioritizing safety by maintaining a safer distance.\n\nDefault: 1.0."), ""},
+    {"StandardJerkSpeed", tr("Speed Control Smoothness"), tr("Controls the penalty on the rate of change of acceleration while using the 'Standard' personality profile. A higher value promotes smoother but slower transitions when changing speed.\n\nDefault: 1.0."), ""},
     {"ResetStandardPersonality", tr("Reset Settings"), tr("Restore the 'Standard' settings to their default values."), ""},
 
     {"RelaxedPersonalityProfile", tr("Relaxed Personality"), tr("Customize the 'Relaxed' personality profile."), "../frogpilot/assets/stock_theme/distance_icons/relaxed.png"},
     {"RelaxedFollow", tr("Following Distance"), tr("Set the following distance for 'Relaxed' mode. This represents how many seconds you follow behind the car ahead.\n\nDefault: 1.75 seconds."), ""},
-    {"RelaxedJerkAcceleration", tr("Acceleration Change Sensitivity"), tr("Adjust how quickly openpilot changes acceleration in 'Relaxed' mode.\n\nDefault: 1.0."), ""},
-    {"RelaxedJerkDanger", tr("Hazard Sensitivity"), tr("Adjust how cautiously openpilot responds to potential hazards in 'Relaxed' mode.\n\nDefault: 1.0."), ""},
-    {"RelaxedJerkSpeed", tr("Speed Control Smoothness"), tr("Adjust how smoothly the openpilot handles speed changes in 'Relaxed' mode.\n\nDefault: 1.0."), ""},
+    {"RelaxedJerkAcceleration", tr("Acceleration Change Sensitivity"), tr("Controls the penalty applied for changes in acceleration while using the 'Relaxed' profile personality. This influences how smoothly the car accelerates or decelerates. A higher value makes openpilot more reluctant to change acceleration abruptly, resulting in a smoother ride.\n\nDefault: 1.0."), ""},
+    {"RelaxedJerkDanger", tr("Hazard Sensitivity"), tr("Adjusts the penalty for getting too close to other vehicles or obstacles while using the 'Relaxed' personality profile. A higher value makes openpilot more cautious when approaching other cars or obstacles, prioritizing safety by maintaining a safer distance.\n\nDefault: 1.0."), ""},
+    {"RelaxedJerkSpeed", tr("Speed Control Smoothness"), tr("Controls the penalty on the rate of change of acceleration while using the 'Relaxed' personality profile. A higher value promotes smoother but slower transitions when changing speed.\n\nDefault: 1.0."), ""},
     {"ResetRelaxedPersonality", tr("Reset Settings"), tr("Restore the 'Relaxed' settings to their default values."), ""},
 
     {"DeveloperUI", tr("Developer UI"), tr("Show detailed information about openpilot's internal operations."), "../frogpilot/assets/toggle_icons/icon_device.png"},
@@ -47,7 +46,7 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
     {"LateralMetrics", tr("Lateral Metrics"), tr("Display metrics related to steering control."), ""},
     {"LongitudinalMetrics", tr("Longitudinal Metrics"), tr("Display metrics related to acceleration, speed, and desired following distance."), ""},
     {"NumericalTemp", tr("Numerical Temperature Gauge"), tr("Show exact temperature readings instead of general status labels like 'GOOD', 'OK', or 'HIGH'."), ""},
-    {"SidebarMetrics", tr("Sidebar Metrics"), tr("Display system information like CPU, GPU, RAM usage, IP address, and storage space on the sidebar."), ""},
+    {"SidebarMetrics", tr("Sidebar"), tr("Display system information like CPU, GPU, RAM usage, IP address, and storage space on the sidebar."), ""},
     {"UseSI", tr("Use International System of Units"), tr("Display measurements using the metric system (SI units)."), ""},
 
     {"ModelManagement", tr("Model Management"), tr("Manage the driving models used by openpilot."), "../assets/offroad/icon_calibration.png"},
@@ -78,23 +77,32 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
     if (param == "AdvancedLateralTune") {
       FrogPilotParamManageControl *lateralTuneToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
       QObject::connect(lateralTuneToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
+        bool nnff = params.getBool("NNFF");
+
         for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(lateralTuneKeys.find(key.c_str()) != lateralTuneKeys.end());
+          std::set<QString> modifiedLateralTuneKeys = lateralTuneKeys;
+
+          if (nnff) {
+            modifiedLateralTuneKeys.erase("SteerFriction");
+            modifiedLateralTuneKeys.erase("SteerLatAccel");
+          }
+
+          toggle->setVisible(modifiedLateralTuneKeys.find(key.c_str()) != modifiedLateralTuneKeys.end());
         }
       });
       advancedToggle = lateralTuneToggle;
     } else if (param == "SteerFriction") {
       std::vector<QString> steerFrictionToggles{"ResetSteerFriction"};
       std::vector<QString> steerFrictionToggleNames{"Reset"};
-      advancedToggle = new FrogPilotParamValueButtonControl(param, title, desc, icon, 0, 0.25, QString(), std::map<int, QString>(), 0.001, steerFrictionToggles, steerFrictionToggleNames, false);
-    } else if (param == "SteerLatAccel") {
-      std::vector<QString> steerLatAccelToggles{"ResetSteerLatAccel"};
-      std::vector<QString> steerLatAccelToggleNames{"Reset"};
-      advancedToggle = new FrogPilotParamValueButtonControl(param, title, desc, icon, steerLatAccelStock * 0.25, steerLatAccelStock * 1.25, QString(), std::map<int, QString>(), 0.001, steerLatAccelToggles, steerLatAccelToggleNames, false);
+      advancedToggle = new FrogPilotParamValueButtonControl(param, title, desc, icon, 0, 0.25, QString(), std::map<int, QString>(), 0.01, steerFrictionToggles, steerFrictionToggleNames, false);
     } else if (param == "SteerKP") {
       std::vector<QString> steerKPToggles{"ResetSteerKP"};
       std::vector<QString> steerKPToggleNames{"Reset"};
       advancedToggle = new FrogPilotParamValueButtonControl(param, title, desc, icon, steerKPStock * 0.50, steerKPStock * 1.50, QString(), std::map<int, QString>(), 0.01, steerKPToggles, steerKPToggleNames, false);
+    } else if (param == "SteerLatAccel") {
+      std::vector<QString> steerLatAccelToggles{"ResetSteerLatAccel"};
+      std::vector<QString> steerLatAccelToggleNames{"Reset"};
+      advancedToggle = new FrogPilotParamValueButtonControl(param, title, desc, icon, steerLatAccelStock * 0.25, steerLatAccelStock * 1.25, QString(), std::map<int, QString>(), 0.01, steerLatAccelToggles, steerLatAccelToggleNames, false);
     } else if (param == "SteerRatio") {
       std::vector<QString> steerRatioToggles{"ResetSteerRatio"};
       std::vector<QString> steerRatioToggleNames{"Reset"};
@@ -127,13 +135,6 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
         }
       });
       advancedToggle = customPersonalitiesToggle;
-    } else if (param == "PersonalityInfo") {
-      ButtonControl *personalitiesInfoBtn = new ButtonControl(title, tr("VIEW"), desc);
-      QObject::connect(personalitiesInfoBtn, &ButtonControl::clicked, [this]() {
-        const std::string txt = util::read_file("../frogpilot/ui/qt/offroad/personalities_info.txt");
-        ConfirmationDialog::rich(QString::fromStdString(txt), this);
-      });
-      advancedToggle = reinterpret_cast<AbstractControl*>(personalitiesInfoBtn);
     } else if (param == "ResetTrafficPersonality" || param == "ResetAggressivePersonality" || param == "ResetStandardPersonality" || param == "ResetRelaxedPersonality") {
       FrogPilotButtonsControl *profileBtn = new FrogPilotButtonsControl(title, desc, {tr("Reset")});
       advancedToggle = profileBtn;
@@ -236,7 +237,7 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
     } else if (param == "SidebarMetrics") {
       std::vector<QString> sidebarMetricsToggles{"ShowCPU", "ShowGPU", "ShowIP", "ShowMemoryUsage", "ShowStorageLeft", "ShowStorageUsed"};
       std::vector<QString> sidebarMetricsToggleNames{tr("CPU"), tr("GPU"), tr("IP"), tr("RAM"), tr("SSD Left"), tr("SSD Used")};
-      FrogPilotButtonToggleControl *sidebarMetricsToggle = new FrogPilotButtonToggleControl(param, title, desc, sidebarMetricsToggles, sidebarMetricsToggleNames, 125);
+      FrogPilotButtonToggleControl *sidebarMetricsToggle = new FrogPilotButtonToggleControl(param, title, desc, sidebarMetricsToggles, sidebarMetricsToggleNames, false, 150);
       QObject::connect(sidebarMetricsToggle, &FrogPilotButtonToggleControl::buttonClicked, this, [this](int index) {
         if (index == 0) {
           params.putBool("ShowGPU", false);
@@ -647,17 +648,17 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
     updateFrogPilotToggles();
   });
 
-  steerLatAccelToggle = static_cast<FrogPilotParamValueButtonControl*>(toggles["SteerLatAccel"]);
-  QObject::connect(steerLatAccelToggle, &FrogPilotParamValueButtonControl::buttonClicked, this, [this]() {
-    params.putFloat("SteerLatAccel", steerLatAccelStock);
-    steerLatAccelToggle->refresh();
-    updateFrogPilotToggles();
-  });
-
   steerKPToggle = static_cast<FrogPilotParamValueButtonControl*>(toggles["SteerKP"]);
   QObject::connect(steerKPToggle, &FrogPilotParamValueButtonControl::buttonClicked, this, [this]() {
     params.putFloat("SteerKP", steerKPStock);
     steerKPToggle->refresh();
+    updateFrogPilotToggles();
+  });
+
+  steerLatAccelToggle = static_cast<FrogPilotParamValueButtonControl*>(toggles["SteerLatAccel"]);
+  QObject::connect(steerLatAccelToggle, &FrogPilotParamValueButtonControl::buttonClicked, this, [this]() {
+    params.putFloat("SteerLatAccel", steerLatAccelStock);
+    steerLatAccelToggle->refresh();
     updateFrogPilotToggles();
   });
 
@@ -778,8 +779,8 @@ void FrogPilotAdvancedPanel::updateState(const UIState &s) {
 
 void FrogPilotAdvancedPanel::updateCarToggles() {
   float currentFrictionStock = params.getFloat("SteerFrictionStock");
-  float currentLatAccelStock = params.getFloat("SteerLatAccelStock");
   float currentKPStock = params.getFloat("SteerKPStock");
+  float currentLatAccelStock = params.getFloat("SteerLatAccelStock");
   float currentRatioStock = params.getFloat("SteerRatioStock");
 
   auto carParams = params.get("CarParamsPersistent");
@@ -792,8 +793,8 @@ void FrogPilotAdvancedPanel::updateCarToggles() {
     hasAutoTune = (carName == "hyundai" || carName == "toyota") && CP.getLateralTuning().which() == cereal::CarParams::LateralTuning::TORQUE;
     hasOpenpilotLongitudinal = hasLongitudinalControl(CP);
     steerFrictionStock = CP.getLateralTuning().getTorque().getFriction();
-    steerLatAccelStock = CP.getLateralTuning().getTorque().getLatAccelFactor();
     steerKPStock = CP.getLateralTuning().getTorque().getKp();
+    steerLatAccelStock = CP.getLateralTuning().getTorque().getLatAccelFactor();
     steerRatioStock = CP.getSteerRatio();
 
     steerFrictionToggle->setTitle(QString(tr("Friction (Default: %1)")).arg(QString::number(steerFrictionStock, 'f', 2)));
@@ -802,18 +803,18 @@ void FrogPilotAdvancedPanel::updateCarToggles() {
       params.putFloat("SteerFrictionStock", steerFrictionStock);
     }
 
+    steerKPToggle->setTitle(QString(tr("Kp Factor (Default: %1)")).arg(QString::number(steerKPStock, 'f', 2)));
+    steerKPToggle->updateControl(steerKPStock * 0.50, currentKPStock * 1.50);
+    if (currentKPStock != steerKPStock) {
+      params.putFloat("SteerKP", steerKPStock);
+      params.putFloat("SteerKPStock", steerKPStock);
+    }
+
     steerLatAccelToggle->setTitle(QString(tr("Lateral Accel (Default: %1)")).arg(QString::number(steerLatAccelStock, 'f', 2)));
     steerLatAccelToggle->updateControl(steerLatAccelStock * 0.75, steerLatAccelStock * 1.25);
     if (currentLatAccelStock != steerLatAccelStock) {
       params.putFloat("SteerLatAccel", steerLatAccelStock);
       params.putFloat("SteerLatAccelStock", steerLatAccelStock);
-    }
-
-    steerKPToggle->setTitle(QString(tr("Proportional Gain (Default: %1)")).arg(QString::number(steerKPStock, 'f', 2)));
-    steerKPToggle->updateControl(steerKPStock * 0.50, currentKPStock * 1.50);
-    if (currentKPStock != steerKPStock) {
-      params.putFloat("SteerKP", steerKPStock);
-      params.putFloat("SteerKPStock", steerKPStock);
     }
 
     steerRatioToggle->setTitle(QString(tr("Steer Ratio (Default: %1)")).arg(QString::number(steerRatioStock, 'f', 2)));

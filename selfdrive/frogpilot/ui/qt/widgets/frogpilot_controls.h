@@ -5,12 +5,13 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonParseError>
+#include <QTimer>
 
 #include "selfdrive/ui/qt/widgets/controls.h"
 
 void updateFrogPilotToggles();
 
-QColor loadThemeColors(const QString &colorKey);
+QColor loadThemeColors(const QString &colorKey, bool clearCache = false);
 
 const QString buttonStyle = R"(
   QPushButton {
@@ -166,13 +167,13 @@ class FrogPilotButtonToggleControl : public ParamControl {
 public:
   FrogPilotButtonToggleControl(const QString &param, const QString &title, const QString &desc,
                                const std::vector<QString> &buttonParams, const std::vector<QString> &buttonLabels,
-                               const int minimumButtonWidth = 225, QWidget *parent = nullptr)
+                               const bool exclusive = false, const int minimumButtonWidth = 225, QWidget *parent = nullptr)
     : ParamControl(param, title, desc, "", parent),
       key(param.toStdString()),
       buttonParams(buttonParams),
       buttonGroup(new QButtonGroup(this)) {
 
-    buttonGroup->setExclusive(false);
+    buttonGroup->setExclusive(exclusive);
 
     for (int i = 0; i < buttonLabels.size(); ++i) {
       QPushButton *button = new QPushButton(buttonLabels[i], this);
@@ -264,12 +265,10 @@ class FrogPilotParamValueControl : public AbstractControl {
 public:
   FrogPilotParamValueControl(const QString &param, const QString &title, const QString &desc, const QString &icon,
                              float minValue, float maxValue, const QString &label = "", const std::map<int, QString> &valueLabels = {},
-                             float interval = 1.0f, const bool compactSize = false)
+                             float interval = 1.0f, bool compactSize = false)
       : AbstractControl(title, desc, icon), key(param.toStdString()), minValue(minValue), maxValue(maxValue),
-        labelText(label), interval(interval), isPressed(false), tempValue(0.0f), valueLabels(valueLabels) {
-
-    decimalPlaces = std::ceil(-std::log10(interval));
-    factor = std::pow(10.0f, decimalPlaces);
+        labelText(label), interval(interval), valueLabels(valueLabels),
+        decimalPlaces(std::ceil(-std::log10(interval))), factor(std::pow(10.0f, decimalPlaces)) {
 
     setupButton(decrementButton, "-");
     setupButton(incrementButton, "+");
@@ -302,8 +301,7 @@ public:
 
   void refresh() {
     value = params.getFloat(key);
-    tempValue = value;
-    updateValueDisplay(tempValue);
+    updateValueDisplay();
   }
 
 signals:
@@ -316,41 +314,48 @@ protected:
 
 private slots:
   void onIncrementPressed() {
-    isPressed = true;
     adjustValue(interval);
   }
 
   void onDecrementPressed() {
-    isPressed = true;
     adjustValue(-interval);
   }
 
   void onButtonReleased() {
-    if (isPressed) {
-      value = qBound(minValue, tempValue, maxValue);
+    float lastValue = value;
+    QTimer::singleShot(50, this, [this, lastValue]() {
+      if (lastValue != value) {
+        return;
+      }
+
+      previousDelta = false;
       params.putFloat(key, value);
       emit valueChanged(value);
-      isPressed = false;
-    }
+    });
   }
 
 private:
   void adjustValue(float delta) {
-    //if (isPressed && fmod(value, 5.0f * interval) == 0.0f) {
-      //delta *= 5;
-    //}
-    tempValue = qBound(minValue, tempValue + delta, maxValue);
-    updateValueDisplay(tempValue);
+    float modResult = fmod(value, 5.0f * interval);
+    if (modResult < interval) {
+      if (previousDelta) {
+        delta *= 5;
+      }
+      previousDelta = true;
+    }
+
+    value = qBound(minValue, value + delta, maxValue);
+    value = std::round(value * factor) / factor;
+
+    updateValueDisplay();
   }
 
-  void updateValueDisplay(float val) {
-    val = std::round(val * factor) / factor;
-
-    int intValue = static_cast<int>(val);
-    if (valueLabels.find(intValue) != valueLabels.end()) {
+  void updateValueDisplay() const {
+    int intValue = static_cast<int>(value);
+    if (valueLabels.count(intValue)) {
       valueLabel->setText(valueLabels.at(intValue));
     } else {
-      valueLabel->setText(QString::number(val, 'f', decimalPlaces) + labelText);
+      valueLabel->setText(QString::number(value, 'f', decimalPlaces) + labelText);
     }
   }
 
@@ -385,16 +390,15 @@ private:
 
   QString labelText;
 
-  bool isPressed;
+  bool previousDelta;
 
   int decimalPlaces;
 
   float factor;
+  float interval;
   float minValue;
   float maxValue;
-  float interval;
   float value;
-  float tempValue;
 
   std::map<int, QString> valueLabels;
 
