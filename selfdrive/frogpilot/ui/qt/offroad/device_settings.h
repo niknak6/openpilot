@@ -15,6 +15,7 @@ signals:
 
 private:
   void hideToggles();
+  void showToggles(std::set<QString> &keys);
 
   std::set<QString> deviceManagementKeys = {"DeviceShutdown", "IncreaseThermalLimits", "LowVoltageShutdown", "NoLogging", "NoUploads", "OfflineMode"};
 

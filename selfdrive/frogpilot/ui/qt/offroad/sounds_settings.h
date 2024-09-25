@@ -15,6 +15,7 @@ signals:
 
 private:
   void hideToggles();
+  void showToggles(std::set<QString> &keys);
   void updateCarToggles();
 
   std::set<QString> alertVolumeControlKeys = {"DisengageVolume", "EngageVolume", "PromptDistractedVolume", "PromptVolume", "RefuseVolume", "WarningImmediateVolume", "WarningSoftVolume"};

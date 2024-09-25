@@ -51,7 +51,7 @@ OnroadWindow::OnroadWindow(QWidget *parent) : QWidget(parent) {
   QObject::connect(uiState(), &UIState::primeChanged, this, &OnroadWindow::primeChanged);
 
   // FrogPilot variables
-  QObject::connect(&clickTimer, &QTimer::timeout, this, [this]() {
+  QObject::connect(&clickTimer, &QTimer::timeout, [this]() {
     clickTimer.stop();
     QMouseEvent *event = new QMouseEvent(QEvent::MouseButtonPress, timeoutPoint, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
     QApplication::postEvent(this, event);

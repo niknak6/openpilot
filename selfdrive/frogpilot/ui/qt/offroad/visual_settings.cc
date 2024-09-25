@@ -47,21 +47,16 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
 
     if (param == "BonusContent") {
       FrogPilotParamManageControl *BonusContentToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(BonusContentToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(bonusContentKeys.find(key.c_str()) != bonusContentKeys.end());
-        }
+      QObject::connect(BonusContentToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        showToggles(bonusContentKeys);
       });
       visualToggle = BonusContentToggle;
     } else if (param == "PersonalizeOpenpilot") {
       FrogPilotParamManageControl *personalizeOpenpilotToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(personalizeOpenpilotToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        openSubParentToggle();
-
+      QObject::connect(personalizeOpenpilotToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         personalizeOpenpilotOpen = true;
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(personalizeOpenpilotKeys.find(key.c_str()) != personalizeOpenpilotKeys.end());
-        }
+        openSubParentToggle();
+        showToggles(personalizeOpenpilotKeys);
       });
       visualToggle = personalizeOpenpilotToggle;
     } else if (param == "CustomColors") {
@@ -773,10 +768,8 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
 
     } else if (param == "CustomUI") {
       FrogPilotParamManageControl *customUIToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(customUIToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(customOnroadUIKeys.find(key.c_str()) != customOnroadUIKeys.end());
-        }
+      QObject::connect(customUIToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        showToggles(customOnroadUIKeys);
       });
       visualToggle = customUIToggle;
     } else if (param == "CustomPaths") {
@@ -787,7 +780,7 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
       std::vector<QString> pedalsToggles{"DynamicPedalsOnUI", "StaticPedalsOnUI"};
       std::vector<QString> pedalsToggleNames{tr("Dynamic"), tr("Static")};
       FrogPilotButtonToggleControl *pedalsToggle = new FrogPilotButtonToggleControl(param, title, desc, pedalsToggles, pedalsToggleNames, true);
-      QObject::connect(pedalsToggle, &FrogPilotButtonToggleControl::buttonClicked, this, [this](int index) {
+      QObject::connect(pedalsToggle, &FrogPilotButtonToggleControl::buttonClicked, [this](int index) {
         if (index == 0) {
           params.putBool("StaticPedalsOnUI", false);
         } else if (index == 1) {
@@ -802,10 +795,8 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
 
     } else if (param == "QOLVisuals") {
       FrogPilotParamManageControl *qolToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(qolToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(qolKeys.find(key.c_str()) != qolKeys.end());
-        }
+      QObject::connect(qolToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        showToggles(qolKeys);
       });
       visualToggle = qolToggle;
     } else if (param == "CameraView") {
@@ -855,10 +846,8 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
 
     } else if (param == "ScreenManagement") {
       FrogPilotParamManageControl *screenToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(screenToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(screenKeys.find(key.c_str()) != screenKeys.end());
-        }
+      QObject::connect(screenToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        showToggles(screenKeys);
       });
       visualToggle = screenToggle;
     } else if (param == "HideUIElements") {
@@ -906,14 +895,10 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
 
     QObject::connect(static_cast<ToggleControl*>(visualToggle), &ToggleControl::toggleFlipped, &updateFrogPilotToggles);
     QObject::connect(static_cast<FrogPilotButtonToggleControl*>(visualToggle), &FrogPilotButtonToggleControl::buttonClicked, &updateFrogPilotToggles);
+    QObject::connect(static_cast<FrogPilotParamManageControl*>(visualToggle), &FrogPilotParamManageControl::manageButtonClicked, this, &FrogPilotVisualsPanel::openParentToggle);
     QObject::connect(static_cast<FrogPilotParamValueControl*>(visualToggle), &FrogPilotParamValueControl::valueChanged, &updateFrogPilotToggles);
 
     QObject::connect(visualToggle, &AbstractControl::showDescriptionEvent, [this]() {
-      update();
-    });
-
-    QObject::connect(static_cast<FrogPilotParamManageControl*>(visualToggle), &FrogPilotParamManageControl::manageButtonClicked, [this]() {
-      openParentToggle();
       update();
     });
   }
@@ -1005,6 +990,7 @@ void FrogPilotVisualsPanel::updateCarToggles() {
     AlignedBuffer aligned_buf;
     capnp::FlatArrayMessageReader cmsg(aligned_buf.align(carParams.data(), carParams.size()));
     cereal::CarParams::Reader CP = cmsg.getRoot<cereal::CarParams>();
+
     auto carName = CP.getCarName();
 
     hasAutoTune = (carName == "hyundai" || carName == "toyota") && CP.getLateralTuning().which() == cereal::CarParams::LateralTuning::TORQUE;
@@ -1017,6 +1003,21 @@ void FrogPilotVisualsPanel::updateCarToggles() {
   hideToggles();
 }
 
+void FrogPilotVisualsPanel::showToggles(std::set<QString> &keys) {
+  setUpdatesEnabled(false);
+
+  for (auto &[key, toggle] : toggles) {
+    if (keys.find(key.c_str()) != keys.end()) {
+      toggle->show();
+    } else {
+      toggle->hide();
+    }
+  }
+
+  setUpdatesEnabled(true);
+  update();
+}
+
 void FrogPilotVisualsPanel::hideToggles() {
   personalizeOpenpilotOpen = false;
 
@@ -1026,7 +1027,11 @@ void FrogPilotVisualsPanel::hideToggles() {
                       personalizeOpenpilotKeys.find(key.c_str()) != personalizeOpenpilotKeys.end() ||
                       qolKeys.find(key.c_str()) != qolKeys.end() ||
                       screenKeys.find(key.c_str()) != screenKeys.end();
-    toggle->setVisible(!subToggles);
+    if (!subToggles) {
+      toggle->show();
+    } else {
+      toggle->hide();
+    }
   }
 
   update();
@@ -1035,8 +1040,11 @@ void FrogPilotVisualsPanel::hideToggles() {
 void FrogPilotVisualsPanel::hideSubToggles() {
   if (personalizeOpenpilotOpen) {
     for (auto &[key, toggle] : toggles) {
-      bool isVisible = bonusContentKeys.find(key.c_str()) != bonusContentKeys.end();
-      toggle->setVisible(isVisible);
+      if (bonusContentKeys.find(key.c_str()) != bonusContentKeys.end()) {
+        toggle->show();
+      } else {
+        toggle->hide();
+      }
     }
   }
 

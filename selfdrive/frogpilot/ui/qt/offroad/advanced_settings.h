@@ -22,6 +22,7 @@ private:
   void hideSubSubToggles();
   void hideToggles();
   void showEvent(QShowEvent *event) override;
+  void showToggles(std::set<QString> &keys);
   void startDownloadAllModels();
   void updateCalibrationDescription();
   void updateCarToggles();
@@ -69,6 +70,7 @@ private:
   bool hasOpenpilotLongitudinal;
   bool haveModelsDownloaded;
   bool isMetric = params.getBool("IsMetric");
+  bool liveValid;
   bool modelDeleting;
   bool modelDownloading;
   bool modelManagementOpen;

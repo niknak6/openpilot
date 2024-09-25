@@ -64,10 +64,8 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
 
     if (param == "ConditionalExperimental") {
       FrogPilotParamManageControl *conditionalExperimentalToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(conditionalExperimentalToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(conditionalExperimentalKeys.find(key.c_str()) != conditionalExperimentalKeys.end());
-        }
+      QObject::connect(conditionalExperimentalToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        showToggles(conditionalExperimentalKeys);
       });
       longitudinalToggle = conditionalExperimentalToggle;
     } else if (param == "CESpeed") {
@@ -96,14 +94,12 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
 
     } else if (param == "CurveSpeedControl") {
       FrogPilotParamManageControl *curveControlToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(curveControlToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
+      QObject::connect(curveControlToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         curveDetectionBtn->setEnabledButtons(0, QDir("/data/media/0/osm/offline").exists());
         curveDetectionBtn->setCheckedButton(0, params.getBool("MTSCEnabled"));
         curveDetectionBtn->setCheckedButton(1, params.getBool("VisionTurnControl"));
 
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(curveSpeedKeys.find(key.c_str()) != curveSpeedKeys.end());
-        }
+        showToggles(curveSpeedKeys);
       });
       longitudinalToggle = curveControlToggle;
     } else if (param == "CurveDetectionMethod") {
@@ -125,26 +121,21 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
 
     } else if (param == "ExperimentalModeActivation") {
       FrogPilotParamManageControl *experimentalModeActivationToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(experimentalModeActivationToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        for (auto &[key, toggle] : toggles) {
-          std::set<QString> modifiedExperimentalModeActivationKeys = experimentalModeActivationKeys;
+      QObject::connect(experimentalModeActivationToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        std::set<QString> modifiedExperimentalModeActivationKeys = experimentalModeActivationKeys;
 
-          if (params.getBool("AlwaysOnLateralLKAS")) {
-            modifiedExperimentalModeActivationKeys.erase("ExperimentalModeViaLKAS");
-          }
-
-          toggle->setVisible(modifiedExperimentalModeActivationKeys.find(key.c_str()) != modifiedExperimentalModeActivationKeys.end());
+        if (params.getBool("AlwaysOnLateralLKAS")) {
+          modifiedExperimentalModeActivationKeys.erase("ExperimentalModeViaLKAS");
         }
+
+        showToggles(modifiedExperimentalModeActivationKeys);
       });
       longitudinalToggle = experimentalModeActivationToggle;
 
     } else if (param == "LongitudinalTune") {
       FrogPilotParamManageControl *longitudinalTuneToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(longitudinalTuneToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(longitudinalTuneKeys.find(key.c_str()) != longitudinalTuneKeys.end());
-        }
-
+      QObject::connect(longitudinalTuneToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        showToggles(longitudinalTuneKeys);
       });
       longitudinalToggle = longitudinalTuneToggle;
     } else if (param == "AccelerationProfile") {
@@ -160,25 +151,22 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
 
     } else if (param == "QOLControls") {
       FrogPilotParamManageControl *qolToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(qolToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        for (auto &[key, toggle] : toggles) {
-          std::set<QString> modifiedQolKeys = qolKeys;
+      QObject::connect(qolToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        std::set<QString> modifiedQolKeys = qolKeys;
 
-          if (!hasPCMCruise) {
-            modifiedQolKeys.erase("ReverseCruise");
-          } else {
-            modifiedQolKeys.erase("CustomCruise");
-            modifiedQolKeys.erase("CustomCruiseLong");
-            modifiedQolKeys.erase("SetSpeedOffset");
-          }
-
-          if (!isToyota && !isGM && !isHKGCanFd) {
-            modifiedQolKeys.erase("MapGears");
-          }
-
-          toggle->setVisible(modifiedQolKeys.find(key.c_str()) != modifiedQolKeys.end());
+        if (!hasPCMCruise) {
+          modifiedQolKeys.erase("ReverseCruise");
+        } else {
+          modifiedQolKeys.erase("CustomCruise");
+          modifiedQolKeys.erase("CustomCruiseLong");
+          modifiedQolKeys.erase("SetSpeedOffset");
         }
 
+        if (!isToyota && !isGM && !isHKGCanFd) {
+          modifiedQolKeys.erase("MapGears");
+        }
+
+        showToggles(modifiedQolKeys);
       });
       longitudinalToggle = qolToggle;
     } else if (param == "CustomCruise") {
@@ -198,43 +186,33 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
 
     } else if (param == "SpeedLimitController") {
       FrogPilotParamManageControl *speedLimitControllerToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(speedLimitControllerToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
+      QObject::connect(speedLimitControllerToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         slcOpen = true;
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(speedLimitControllerKeys.find(key.c_str()) != speedLimitControllerKeys.end());
-        }
+        showToggles(speedLimitControllerKeys);
       });
       longitudinalToggle = speedLimitControllerToggle;
     } else if (param == "SLCControls") {
       ButtonControl *manageSLCControlsBtn = new ButtonControl(title, tr("MANAGE"), desc);
       QObject::connect(manageSLCControlsBtn, &ButtonControl::clicked, [this]() {
         openSubParentToggle();
-
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(speedLimitControllerControlsKeys.find(key.c_str()) != speedLimitControllerControlsKeys.end());
-          update();
-        }
+        showToggles(speedLimitControllerControlsKeys);
       });
       longitudinalToggle = reinterpret_cast<AbstractControl*>(manageSLCControlsBtn);
     } else if (param == "SLCQOL") {
       ButtonControl *manageSLCQOLBtn = new ButtonControl(title, tr("MANAGE"), desc);
       QObject::connect(manageSLCQOLBtn, &ButtonControl::clicked, [this]() {
         openSubParentToggle();
+        std::set<QString> modifiedSpeedLimitControllerQOLKeys = speedLimitControllerQOLKeys;
 
-        for (auto &[key, toggle] : toggles) {
-          std::set<QString> modifiedSpeedLimitControllerQOLKeys = speedLimitControllerQOLKeys;
-
-          if (hasPCMCruise) {
-            modifiedSpeedLimitControllerQOLKeys.erase("SetSpeedLimit");
-          }
-
-          if (!isToyota) {
-            modifiedSpeedLimitControllerQOLKeys.erase("ForceMPHDashboard");
-          }
-
-          toggle->setVisible(modifiedSpeedLimitControllerQOLKeys.find(key.c_str()) != modifiedSpeedLimitControllerQOLKeys.end());
-          update();
+        if (hasPCMCruise) {
+          modifiedSpeedLimitControllerQOLKeys.erase("SetSpeedLimit");
         }
+
+        if (!isToyota) {
+          modifiedSpeedLimitControllerQOLKeys.erase("ForceMPHDashboard");
+        }
+
+        showToggles(modifiedSpeedLimitControllerQOLKeys);
       });
       longitudinalToggle = reinterpret_cast<AbstractControl*>(manageSLCQOLBtn);
     } else if (param == "SLCConfirmation") {
@@ -247,11 +225,7 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
       ButtonControl *manageSLCVisualsBtn = new ButtonControl(title, tr("MANAGE"), desc);
       QObject::connect(manageSLCVisualsBtn, &ButtonControl::clicked, [this]() {
         openSubParentToggle();
-
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(speedLimitControllerVisualsKeys.find(key.c_str()) != speedLimitControllerVisualsKeys.end());
-          update();
-        }
+        showToggles(speedLimitControllerVisualsKeys);
       });
       longitudinalToggle = reinterpret_cast<AbstractControl*>(manageSLCVisualsBtn);
     } else if (param == "Offset1" || param == "Offset2" || param == "Offset3" || param == "Offset4") {
@@ -330,14 +304,10 @@ FrogPilotLongitudinalPanel::FrogPilotLongitudinalPanel(FrogPilotSettingsWindow *
 
     QObject::connect(static_cast<ToggleControl*>(longitudinalToggle), &ToggleControl::toggleFlipped, &updateFrogPilotToggles);
     QObject::connect(static_cast<FrogPilotButtonToggleControl*>(longitudinalToggle), &FrogPilotButtonToggleControl::buttonClicked, &updateFrogPilotToggles);
+    QObject::connect(static_cast<FrogPilotParamManageControl*>(longitudinalToggle), &FrogPilotParamManageControl::manageButtonClicked, this, &FrogPilotLongitudinalPanel::openParentToggle);
     QObject::connect(static_cast<FrogPilotParamValueControl*>(longitudinalToggle), &FrogPilotParamValueControl::valueChanged, &updateFrogPilotToggles);
 
     QObject::connect(longitudinalToggle, &AbstractControl::showDescriptionEvent, [this]() {
-      update();
-    });
-
-    QObject::connect(static_cast<FrogPilotParamManageControl*>(longitudinalToggle), &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-      openParentToggle();
       update();
     });
   }
@@ -356,6 +326,7 @@ void FrogPilotLongitudinalPanel::updateCarToggles() {
     AlignedBuffer aligned_buf;
     capnp::FlatArrayMessageReader cmsg(aligned_buf.align(carParams.data(), carParams.size()));
     cereal::CarParams::Reader CP = cmsg.getRoot<cereal::CarParams>();
+
     auto carName = CP.getCarName();
     auto safetyConfigs = CP.getSafetyConfigs();
     auto safetyModel = safetyConfigs[0].getSafetyModel();
@@ -452,12 +423,25 @@ void FrogPilotLongitudinalPanel::updateMetric() {
   }
 }
 
+void FrogPilotLongitudinalPanel::showToggles(std::set<QString> &keys) {
+  setUpdatesEnabled(false);
+
+  for (auto &[key, toggle] : toggles) {
+    if (keys.find(key.c_str()) != keys.end()) {
+      toggle->show();
+    } else {
+      toggle->hide();
+    }
+  }
+
+  setUpdatesEnabled(true);
+  update();
+}
+
 void FrogPilotLongitudinalPanel::hideToggles() {
   slcOpen = false;
 
   for (auto &[key, toggle] : toggles) {
-    toggle->setVisible(false);
-
     bool subToggles = conditionalExperimentalKeys.find(key.c_str()) != conditionalExperimentalKeys.end() ||
                       curveSpeedKeys.find(key.c_str()) != curveSpeedKeys.end() ||
                       experimentalModeActivationKeys.find(key.c_str()) != experimentalModeActivationKeys.end() ||
@@ -467,7 +451,11 @@ void FrogPilotLongitudinalPanel::hideToggles() {
                       speedLimitControllerControlsKeys.find(key.c_str()) != speedLimitControllerControlsKeys.end() ||
                       speedLimitControllerQOLKeys.find(key.c_str()) != speedLimitControllerQOLKeys.end() ||
                       speedLimitControllerVisualsKeys.find(key.c_str()) != speedLimitControllerVisualsKeys.end();
-    toggle->setVisible(!subToggles);
+    if (!subToggles) {
+      toggle->show();
+    } else {
+      toggle->hide();
+    }
   }
 
   update();
@@ -476,8 +464,11 @@ void FrogPilotLongitudinalPanel::hideToggles() {
 void FrogPilotLongitudinalPanel::hideSubToggles() {
   if (slcOpen) {
     for (auto &[key, toggle] : toggles) {
-      bool isVisible = speedLimitControllerKeys.find(key.c_str()) != speedLimitControllerKeys.end();
-      toggle->setVisible(isVisible);
+      if (speedLimitControllerKeys.find(key.c_str()) != speedLimitControllerKeys.end()) {
+        toggle->show();
+      } else {
+        toggle->hide();
+      }
     }
   }
 

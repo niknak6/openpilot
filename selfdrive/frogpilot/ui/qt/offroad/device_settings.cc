@@ -16,10 +16,8 @@ FrogPilotDevicePanel::FrogPilotDevicePanel(FrogPilotSettingsWindow *parent) : Fr
 
     if (param == "DeviceManagement") {
       FrogPilotParamManageControl *deviceManagementToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(deviceManagementToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(deviceManagementKeys.find(key.c_str()) != deviceManagementKeys.end());
-        }
+      QObject::connect(deviceManagementToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        showToggles(deviceManagementKeys);
       });
       deviceToggle = deviceManagementToggle;
     } else if (param == "DeviceShutdown") {
@@ -44,14 +42,10 @@ FrogPilotDevicePanel::FrogPilotDevicePanel(FrogPilotSettingsWindow *parent) : Fr
 
     QObject::connect(static_cast<ToggleControl*>(deviceToggle), &ToggleControl::toggleFlipped, &updateFrogPilotToggles);
     QObject::connect(static_cast<FrogPilotButtonToggleControl*>(deviceToggle), &FrogPilotButtonToggleControl::buttonClicked, &updateFrogPilotToggles);
+    QObject::connect(static_cast<FrogPilotParamManageControl*>(deviceToggle), &FrogPilotParamManageControl::manageButtonClicked, this, &FrogPilotDevicePanel::openParentToggle);
     QObject::connect(static_cast<FrogPilotParamValueControl*>(deviceToggle), &FrogPilotParamValueControl::valueChanged, &updateFrogPilotToggles);
 
     QObject::connect(deviceToggle, &AbstractControl::showDescriptionEvent, [this]() {
-      update();
-    });
-
-    QObject::connect(static_cast<FrogPilotParamManageControl*>(deviceToggle), &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-      openParentToggle();
       update();
     });
   }
@@ -85,12 +79,29 @@ FrogPilotDevicePanel::FrogPilotDevicePanel(FrogPilotSettingsWindow *parent) : Fr
   hideToggles();
 }
 
+void FrogPilotDevicePanel::showToggles(std::set<QString> &keys) {
+  setUpdatesEnabled(false);
+
+  for (auto &[key, toggle] : toggles) {
+    if (keys.find(key.c_str()) != keys.end()) {
+      toggle->show();
+    } else {
+      toggle->hide();
+    }
+  }
+
+  setUpdatesEnabled(true);
+  update();
+}
+
 void FrogPilotDevicePanel::hideToggles() {
   for (auto &[key, toggle] : toggles) {
-    toggle->setVisible(false);
-
     bool subToggles = deviceManagementKeys.find(key.c_str()) != deviceManagementKeys.end();
-    toggle->setVisible(!subToggles);
+    if (!subToggles) {
+      toggle->show();
+    } else {
+      toggle->hide();
+    }
   }
 
   update();

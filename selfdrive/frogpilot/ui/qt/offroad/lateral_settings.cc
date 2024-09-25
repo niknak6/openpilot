@@ -51,10 +51,8 @@ FrogPilotLateralPanel::FrogPilotLateralPanel(FrogPilotSettingsWindow *parent) : 
 
     if (param == "AlwaysOnLateral") {
       FrogPilotParamManageControl *aolToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(aolToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(aolKeys.find(key.c_str()) != aolKeys.end());
-        }
+      QObject::connect(aolToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        showToggles(aolKeys);
       });
       lateralToggle = aolToggle;
     } else if (param == "PauseAOLOnBrake") {
@@ -62,31 +60,28 @@ FrogPilotLateralPanel::FrogPilotLateralPanel(FrogPilotSettingsWindow *parent) : 
 
     } else if (param == "LateralTune") {
       FrogPilotParamManageControl *lateralTuneToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(lateralTuneToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        for (auto &[key, toggle] : toggles) {
-          std::set<QString> modifiedLateralTuneKeys = lateralTuneKeys;
+      QObject::connect(lateralTuneToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        std::set<QString> modifiedLateralTuneKeys = lateralTuneKeys;
 
-          if (hasAutoTune || (params.getBool("LateralTune") && params.getBool("NNFF"))) {
-            modifiedLateralTuneKeys.erase("ForceAutoTune");
-          }
-
-          if (!hasNNFFLog) {
-            modifiedLateralTuneKeys.erase("NNFF");
-          } else if (params.getBool("LateralTune") && params.getBool("NNFF")) {
-            modifiedLateralTuneKeys.erase("NNFFLite");
-          }
-
-          toggle->setVisible(modifiedLateralTuneKeys.find(key.c_str()) != modifiedLateralTuneKeys.end());
+        bool usingNNFF = hasNNFFLog && params.getBool("LateralTune") && params.getBool("NNFF");
+        if (hasAutoTune || usingNNFF) {
+          modifiedLateralTuneKeys.erase("ForceAutoTune");
         }
+
+        if (!hasNNFFLog) {
+          modifiedLateralTuneKeys.erase("NNFF");
+        } else if (usingNNFF) {
+          modifiedLateralTuneKeys.erase("NNFFLite");
+        }
+
+        showToggles(modifiedLateralTuneKeys);
       });
       lateralToggle = lateralTuneToggle;
 
     } else if (param == "QOLControls") {
       FrogPilotParamManageControl *qolToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(qolToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(qolKeys.find(key.c_str()) != qolKeys.end());
-        }
+      QObject::connect(qolToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        showToggles(qolKeys);
       });
       lateralToggle = qolToggle;
     } else if (param == "PauseLateralSpeed") {
@@ -98,10 +93,8 @@ FrogPilotLateralPanel::FrogPilotLateralPanel(FrogPilotSettingsWindow *parent) : 
 
     } else if (param == "LaneChangeCustomizations") {
       FrogPilotParamManageControl *laneChangeToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(laneChangeToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(laneChangeKeys.find(key.c_str()) != laneChangeKeys.end());
-        }
+      QObject::connect(laneChangeToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        showToggles(laneChangeKeys);
       });
       lateralToggle = laneChangeToggle;
     } else if (param == "LaneChangeTime") {
@@ -124,14 +117,10 @@ FrogPilotLateralPanel::FrogPilotLateralPanel(FrogPilotSettingsWindow *parent) : 
 
     QObject::connect(static_cast<ToggleControl*>(lateralToggle), &ToggleControl::toggleFlipped, &updateFrogPilotToggles);
     QObject::connect(static_cast<FrogPilotButtonToggleControl*>(lateralToggle), &FrogPilotButtonToggleControl::buttonClicked, &updateFrogPilotToggles);
+    QObject::connect(static_cast<FrogPilotParamManageControl*>(lateralToggle), &FrogPilotParamManageControl::manageButtonClicked, this, &FrogPilotLateralPanel::openParentToggle);
     QObject::connect(static_cast<FrogPilotParamValueControl*>(lateralToggle), &FrogPilotParamValueControl::valueChanged, &updateFrogPilotToggles);
 
     QObject::connect(lateralToggle, &AbstractControl::showDescriptionEvent, [this]() {
-      update();
-    });
-
-    QObject::connect(static_cast<FrogPilotParamManageControl*>(lateralToggle), &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-      openParentToggle();
       update();
     });
   }
@@ -173,6 +162,7 @@ void FrogPilotLateralPanel::updateCarToggles() {
     AlignedBuffer aligned_buf;
     capnp::FlatArrayMessageReader cmsg(aligned_buf.align(carParams.data(), carParams.size()));
     cereal::CarParams::Reader CP = cmsg.getRoot<cereal::CarParams>();
+
     auto carFingerprint = CP.getCarFingerprint();
     auto carName = CP.getCarName();
 
@@ -224,15 +214,32 @@ void FrogPilotLateralPanel::updateMetric() {
   }
 }
 
+void FrogPilotLateralPanel::showToggles(std::set<QString> &keys) {
+  setUpdatesEnabled(false);
+
+  for (auto &[key, toggle] : toggles) {
+    if (keys.find(key.c_str()) != keys.end()) {
+      toggle->show();
+    } else {
+      toggle->hide();
+    }
+  }
+
+  setUpdatesEnabled(true);
+  update();
+}
+
 void FrogPilotLateralPanel::hideToggles() {
   for (auto &[key, toggle] : toggles) {
-    toggle->setVisible(false);
-
     bool subToggles = aolKeys.find(key.c_str()) != aolKeys.end() ||
                       laneChangeKeys.find(key.c_str()) != laneChangeKeys.end() ||
                       lateralTuneKeys.find(key.c_str()) != lateralTuneKeys.end() ||
                       qolKeys.find(key.c_str()) != qolKeys.end();
-    toggle->setVisible(!subToggles);
+    if (!subToggles) {
+      toggle->show();
+    } else {
+      toggle->hide();
+    }
   }
 
   update();

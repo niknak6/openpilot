@@ -76,19 +76,15 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
 
     if (param == "AdvancedLateralTune") {
       FrogPilotParamManageControl *lateralTuneToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(lateralTuneToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        bool nnff = params.getBool("NNFF");
+      QObject::connect(lateralTuneToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        std::set<QString> modifiedLateralTuneKeys = lateralTuneKeys;
 
-        for (auto &[key, toggle] : toggles) {
-          std::set<QString> modifiedLateralTuneKeys = lateralTuneKeys;
-
-          if (nnff) {
-            modifiedLateralTuneKeys.erase("SteerFriction");
-            modifiedLateralTuneKeys.erase("SteerLatAccel");
-          }
-
-          toggle->setVisible(modifiedLateralTuneKeys.find(key.c_str()) != modifiedLateralTuneKeys.end());
+        if (!liveValid || params.getBool("NNFF")) {
+          modifiedLateralTuneKeys.erase("SteerFriction");
+          modifiedLateralTuneKeys.erase("SteerLatAccel");
         }
+
+        showToggles(modifiedLateralTuneKeys);
       });
       advancedToggle = lateralTuneToggle;
     } else if (param == "SteerFriction") {
@@ -110,18 +106,15 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
 
     } else if (param == "AdvancedLongitudinalTune") {
       FrogPilotParamManageControl *longitudinalTuneToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(longitudinalTuneToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
+      QObject::connect(longitudinalTuneToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        std::set<QString> modifiedLongitudinalTuneKeys = longitudinalTuneKeys;
+
         bool radarlessModel = QString::fromStdString(params.get("RadarlessModels")).split(",").contains(QString::fromStdString(params.get("Model")));
-
-        for (auto &[key, toggle] : toggles) {
-          std::set<QString> modifiedLongitudinalTuneKeys = longitudinalTuneKeys;
-
-          if (radarlessModel) {
-            modifiedLongitudinalTuneKeys.erase("LeadDetectionThreshold");
-          }
-
-          toggle->setVisible(modifiedLongitudinalTuneKeys.find(key.c_str()) != modifiedLongitudinalTuneKeys.end());
+        if (radarlessModel) {
+          modifiedLongitudinalTuneKeys.erase("LeadDetectionThreshold");
         }
+
+        showToggles(modifiedLongitudinalTuneKeys);
       });
       advancedToggle = longitudinalTuneToggle;
     } else if (param == "LeadDetectionThreshold") {
@@ -129,10 +122,8 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
 
     } else if (param == "CustomPersonalities") {
       FrogPilotParamManageControl *customPersonalitiesToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(customPersonalitiesToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(customDrivingPersonalityKeys.find(key.c_str()) != customDrivingPersonalityKeys.end());
-        }
+      QObject::connect(customPersonalitiesToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        showToggles(customDrivingPersonalityKeys);
       });
       advancedToggle = customPersonalitiesToggle;
     } else if (param == "ResetTrafficPersonality" || param == "ResetAggressivePersonality" || param == "ResetStandardPersonality" || param == "ResetRelaxedPersonality") {
@@ -140,50 +131,34 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
       advancedToggle = profileBtn;
     } else if (param == "TrafficPersonalityProfile") {
       FrogPilotParamManageControl *trafficPersonalityToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(trafficPersonalityToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
+      QObject::connect(trafficPersonalityToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         customPersonalityOpen = true;
-
         openSubParentToggle();
-
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(trafficPersonalityKeys.find(key.c_str()) != trafficPersonalityKeys.end());
-        }
+        showToggles(trafficPersonalityKeys);
       });
       advancedToggle = trafficPersonalityToggle;
     } else if (param == "AggressivePersonalityProfile") {
       FrogPilotParamManageControl *aggressivePersonalityToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(aggressivePersonalityToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
+      QObject::connect(aggressivePersonalityToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         customPersonalityOpen = true;
-
         openSubParentToggle();
-
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(aggressivePersonalityKeys.find(key.c_str()) != aggressivePersonalityKeys.end());
-        }
+        showToggles(aggressivePersonalityKeys);
       });
       advancedToggle = aggressivePersonalityToggle;
     } else if (param == "StandardPersonalityProfile") {
       FrogPilotParamManageControl *standardPersonalityToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(standardPersonalityToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
+      QObject::connect(standardPersonalityToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         customPersonalityOpen = true;
-
         openSubParentToggle();
-
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(standardPersonalityKeys.find(key.c_str()) != standardPersonalityKeys.end());
-        }
+        showToggles(standardPersonalityKeys);
       });
       advancedToggle = standardPersonalityToggle;
     } else if (param == "RelaxedPersonalityProfile") {
       FrogPilotParamManageControl *relaxedPersonalityToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(relaxedPersonalityToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
+      QObject::connect(relaxedPersonalityToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         customPersonalityOpen = true;
-
         openSubParentToggle();
-
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(relaxedPersonalityKeys.find(key.c_str()) != relaxedPersonalityKeys.end());
-        }
+        showToggles(relaxedPersonalityKeys);
       });
       advancedToggle = relaxedPersonalityToggle;
     } else if (trafficPersonalityKeys.find(param) != trafficPersonalityKeys.end() ||
@@ -202,20 +177,18 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
 
     } else if (param == "DeveloperUI") {
       FrogPilotParamManageControl *developerUIToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(developerUIToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        for (auto &[key, toggle] : toggles) {
-          std::set<QString> modifiedDeveloperUIKeys = developerUIKeys;
+      QObject::connect(developerUIToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        std::set<QString> modifiedDeveloperUIKeys = developerUIKeys;
 
-          if (!hasAutoTune) {
-            modifiedDeveloperUIKeys.erase("LateralMetrics");
-          }
-
-          if (disableOpenpilotLongitudinal || !hasOpenpilotLongitudinal) {
-            modifiedDeveloperUIKeys.erase("LongitudinalMetrics");
-          }
-
-          toggle->setVisible(modifiedDeveloperUIKeys.find(key.c_str()) != modifiedDeveloperUIKeys.end());
+        if (!hasAutoTune) {
+          modifiedDeveloperUIKeys.erase("LateralMetrics");
         }
+
+        if (disableOpenpilotLongitudinal || !hasOpenpilotLongitudinal) {
+          modifiedDeveloperUIKeys.erase("LongitudinalMetrics");
+        }
+
+        showToggles(modifiedDeveloperUIKeys);
       });
       advancedToggle = developerUIToggle;
     } else if (param == "BorderMetrics") {
@@ -238,7 +211,7 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
       std::vector<QString> sidebarMetricsToggles{"ShowCPU", "ShowGPU", "ShowIP", "ShowMemoryUsage", "ShowStorageLeft", "ShowStorageUsed"};
       std::vector<QString> sidebarMetricsToggleNames{tr("CPU"), tr("GPU"), tr("IP"), tr("RAM"), tr("SSD Left"), tr("SSD Used")};
       FrogPilotButtonToggleControl *sidebarMetricsToggle = new FrogPilotButtonToggleControl(param, title, desc, sidebarMetricsToggles, sidebarMetricsToggleNames, false, 150);
-      QObject::connect(sidebarMetricsToggle, &FrogPilotButtonToggleControl::buttonClicked, this, [this](int index) {
+      QObject::connect(sidebarMetricsToggle, &FrogPilotButtonToggleControl::buttonClicked, [this](int index) {
         if (index == 0) {
           params.putBool("ShowGPU", false);
         } else if (index == 1) {
@@ -258,16 +231,12 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
 
     } else if (param == "ModelManagement") {
       FrogPilotParamManageControl *modelManagementToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(modelManagementToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
+      QObject::connect(modelManagementToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         availableModelNames = QString::fromStdString(params.get("AvailableModelsNames")).split(",");
         availableModels = QString::fromStdString(params.get("AvailableModels")).split(",");
         experimentalModels = QString::fromStdString(params.get("ExperimentalModels")).split(",");
 
         modelManagementOpen = true;
-
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(modelManagementKeys.find(key.c_str()) != modelManagementKeys.end());
-        }
 
         QString currentModel = QString::fromStdString(params.get("Model")) + ".thneed";
         QStringList modelFiles = modelDir.entryList({"*.thneed"}, QDir::Files);
@@ -275,16 +244,14 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
         haveModelsDownloaded = modelFiles.size() > 1;
         modelsDownloaded = params.getBool("ModelsDownloaded");
 
+        showToggles(modelManagementKeys);
       });
       advancedToggle = modelManagementToggle;
     } else if (param == "ModelRandomizer") {
       FrogPilotParamManageControl *modelRandomizerToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(modelRandomizerToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
+      QObject::connect(modelRandomizerToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         openSubParentToggle();
-
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(modelRandomizerKeys.find(key.c_str()) != modelRandomizerKeys.end());
-        }
+        showToggles(modelRandomizerKeys);
       });
       advancedToggle = modelRandomizerToggle;
     } else if (param == "ManageBlacklistedModels") {
@@ -359,7 +326,7 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
         }
 
         for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(false);
+          toggle->hide();
         }
       });
       advancedToggle = reinterpret_cast<AbstractControl*>(reviewScoresBtn);
@@ -592,16 +559,14 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
 
     } else if (param == "ModelUI") {
       FrogPilotParamManageControl *modelUIToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(modelUIToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        for (auto &[key, toggle] : toggles) {
-          std::set<QString> modifiedModelUIKeysKeys = modelUIKeys;
+      QObject::connect(modelUIToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        std::set<QString> modifiedModelUIKeysKeys = modelUIKeys;
 
-          if (disableOpenpilotLongitudinal || !hasOpenpilotLongitudinal) {
-            modifiedModelUIKeysKeys.erase("HideLeadMarker");
-          }
-
-          toggle->setVisible(modifiedModelUIKeysKeys.find(key.c_str()) != modifiedModelUIKeysKeys.end());
+        if (disableOpenpilotLongitudinal || !hasOpenpilotLongitudinal) {
+          modifiedModelUIKeysKeys.erase("HideLeadMarker");
         }
+
+        showToggles(modifiedModelUIKeysKeys);
       });
       advancedToggle = modelUIToggle;
     } else if (param == "LaneLinesWidth" || param == "RoadEdgesWidth") {
@@ -620,14 +585,10 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
 
     QObject::connect(static_cast<ToggleControl*>(advancedToggle), &ToggleControl::toggleFlipped, &updateFrogPilotToggles);
     QObject::connect(static_cast<FrogPilotButtonToggleControl*>(advancedToggle), &FrogPilotButtonToggleControl::buttonClicked, &updateFrogPilotToggles);
+    QObject::connect(static_cast<FrogPilotParamManageControl*>(advancedToggle), &FrogPilotParamManageControl::manageButtonClicked, this, &FrogPilotAdvancedPanel::openParentToggle);
     QObject::connect(static_cast<FrogPilotParamValueControl*>(advancedToggle), &FrogPilotParamValueControl::valueChanged, &updateFrogPilotToggles);
 
     QObject::connect(advancedToggle, &AbstractControl::showDescriptionEvent, [this]() {
-      update();
-    });
-
-    QObject::connect(static_cast<FrogPilotParamManageControl*>(advancedToggle), &FrogPilotParamManageControl::manageButtonClicked, [this]() {
-      openParentToggle();
       update();
     });
   }
@@ -642,28 +603,28 @@ FrogPilotAdvancedPanel::FrogPilotAdvancedPanel(FrogPilotSettingsWindow *parent) 
   });
 
   steerFrictionToggle = static_cast<FrogPilotParamValueButtonControl*>(toggles["SteerFriction"]);
-  QObject::connect(steerFrictionToggle, &FrogPilotParamValueButtonControl::buttonClicked, this, [this]() {
+  QObject::connect(steerFrictionToggle, &FrogPilotParamValueButtonControl::buttonClicked, [this]() {
     params.putFloat("SteerFriction", steerFrictionStock);
     steerFrictionToggle->refresh();
     updateFrogPilotToggles();
   });
 
   steerKPToggle = static_cast<FrogPilotParamValueButtonControl*>(toggles["SteerKP"]);
-  QObject::connect(steerKPToggle, &FrogPilotParamValueButtonControl::buttonClicked, this, [this]() {
+  QObject::connect(steerKPToggle, &FrogPilotParamValueButtonControl::buttonClicked, [this]() {
     params.putFloat("SteerKP", steerKPStock);
     steerKPToggle->refresh();
     updateFrogPilotToggles();
   });
 
   steerLatAccelToggle = static_cast<FrogPilotParamValueButtonControl*>(toggles["SteerLatAccel"]);
-  QObject::connect(steerLatAccelToggle, &FrogPilotParamValueButtonControl::buttonClicked, this, [this]() {
+  QObject::connect(steerLatAccelToggle, &FrogPilotParamValueButtonControl::buttonClicked, [this]() {
     params.putFloat("SteerLatAccel", steerLatAccelStock);
     steerLatAccelToggle->refresh();
     updateFrogPilotToggles();
   });
 
   steerRatioToggle = static_cast<FrogPilotParamValueButtonControl*>(toggles["SteerRatio"]);
-  QObject::connect(steerRatioToggle, &FrogPilotParamValueButtonControl::buttonClicked, this, [this]() {
+  QObject::connect(steerRatioToggle, &FrogPilotParamValueButtonControl::buttonClicked, [this]() {
     params.putFloat("SteerRatio", steerRatioStock);
     steerRatioToggle->refresh();
     updateFrogPilotToggles();
@@ -788,6 +749,7 @@ void FrogPilotAdvancedPanel::updateCarToggles() {
     AlignedBuffer aligned_buf;
     capnp::FlatArrayMessageReader cmsg(aligned_buf.align(carParams.data(), carParams.size()));
     cereal::CarParams::Reader CP = cmsg.getRoot<cereal::CarParams>();
+
     auto carName = CP.getCarName();
 
     hasAutoTune = (carName == "hyundai" || carName == "toyota") && CP.getLateralTuning().which() == cereal::CarParams::LateralTuning::TORQUE;
@@ -806,26 +768,45 @@ void FrogPilotAdvancedPanel::updateCarToggles() {
     steerKPToggle->setTitle(QString(tr("Kp Factor (Default: %1)")).arg(QString::number(steerKPStock, 'f', 2)));
     steerKPToggle->updateControl(steerKPStock * 0.50, currentKPStock * 1.50);
     if (currentKPStock != steerKPStock) {
-      params.putFloat("SteerKP", steerKPStock);
+      if (params.getFloat("SteerKP") == currentKPStock) {
+        params.putFloat("SteerKP", steerKPStock);
+      }
       params.putFloat("SteerKPStock", steerKPStock);
     }
 
     steerLatAccelToggle->setTitle(QString(tr("Lateral Accel (Default: %1)")).arg(QString::number(steerLatAccelStock, 'f', 2)));
     steerLatAccelToggle->updateControl(steerLatAccelStock * 0.75, steerLatAccelStock * 1.25);
     if (currentLatAccelStock != steerLatAccelStock) {
-      params.putFloat("SteerLatAccel", steerLatAccelStock);
+      if (params.getFloat("SteerLatAccel") == steerLatAccelStock) {
+        params.putFloat("SteerLatAccel", steerLatAccelStock);
+      }
       params.putFloat("SteerLatAccelStock", steerLatAccelStock);
     }
 
     steerRatioToggle->setTitle(QString(tr("Steer Ratio (Default: %1)")).arg(QString::number(steerRatioStock, 'f', 2)));
     steerRatioToggle->updateControl(steerRatioStock * 0.75, steerRatioStock * 1.25);
     if (currentRatioStock != steerRatioStock) {
-      params.putFloat("SteerRatio", steerRatioStock);
+      if (params.getFloat("SteerRatio") == steerRatioStock) {
+        params.putFloat("SteerRatio", steerRatioStock);
+      }
       params.putFloat("SteerRatioStock", steerRatioStock);
     }
   } else {
     hasAutoTune = true;
     hasOpenpilotLongitudinal = true;
+  }
+
+  auto torqueParams = params.get("LiveTorqueParameters");
+  if (!torqueParams.empty()) {
+    AlignedBuffer aligned_buf;
+    capnp::FlatArrayMessageReader cmsg(aligned_buf.align(torqueParams.data(), torqueParams.size()));
+    cereal::Event::Reader LTP = cmsg.getRoot<cereal::Event>();
+
+    auto liveTorqueParams = LTP.getLiveTorqueParameters();
+
+    liveValid = liveTorqueParams.getLiveValid();
+  } else {
+    liveValid = false;
   }
 
   hideToggles();
@@ -981,6 +962,21 @@ void FrogPilotAdvancedPanel::updateModelLabels() {
   }
 }
 
+void FrogPilotAdvancedPanel::showToggles(std::set<QString> &keys) {
+  setUpdatesEnabled(false);
+
+  for (auto &[key, toggle] : toggles) {
+    if (keys.find(key.c_str()) != keys.end()) {
+      toggle->show();
+    } else {
+      toggle->hide();
+    }
+  }
+
+  setUpdatesEnabled(true);
+  update();
+}
+
 void FrogPilotAdvancedPanel::hideToggles() {
   customPersonalityOpen = false;
   modelManagementOpen = false;
@@ -1001,7 +997,11 @@ void FrogPilotAdvancedPanel::hideToggles() {
                       relaxedPersonalityKeys.find(key.c_str()) != relaxedPersonalityKeys.end() ||
                       standardPersonalityKeys.find(key.c_str()) != standardPersonalityKeys.end() ||
                       trafficPersonalityKeys.find(key.c_str()) != trafficPersonalityKeys.end();
-    toggle->setVisible(!subToggles);
+    if (!subToggles) {
+      toggle->show();
+    } else {
+      toggle->hide();
+    }
   }
 
   update();
@@ -1012,18 +1012,18 @@ void FrogPilotAdvancedPanel::hideSubToggles() {
     for (auto &[key, toggle] : toggles) {
       customPersonalityOpen = false;
 
-      bool isVisible = customDrivingPersonalityKeys.find(key.c_str()) != customDrivingPersonalityKeys.end();
-      toggle->setVisible(isVisible);
+      if (customDrivingPersonalityKeys.find(key.c_str()) != customDrivingPersonalityKeys.end()) {
+        toggle->show();
+      } else {
+        toggle->hide();
+      }
     }
   } else if (modelManagementOpen) {
     for (LabelControl *label : labelControls) {
       label->setVisible(false);
     }
 
-    for (auto &[key, toggle] : toggles) {
-      bool isVisible = modelManagementKeys.find(key.c_str()) != modelManagementKeys.end();
-      toggle->setVisible(isVisible);
-    }
+    showToggles(modelManagementKeys);
   }
 
   update();
@@ -1035,10 +1035,7 @@ void FrogPilotAdvancedPanel::hideSubSubToggles() {
       label->setVisible(false);
     }
 
-    for (auto &[key, toggle] : toggles) {
-      bool isVisible = modelRandomizerKeys.find(key.c_str()) != modelRandomizerKeys.end();
-      toggle->setVisible(isVisible);
-    }
+    showToggles(modelRandomizerKeys);
   }
 
   update();

@@ -442,10 +442,10 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
 
   // FrogPilot panels
   FrogPilotSettingsWindow *frogpilotSettingsWindow = new FrogPilotSettingsWindow(this);
-  QObject::connect(frogpilotSettingsWindow, &FrogPilotSettingsWindow::openPanel, this, [this]() {panelOpen=true;});
-  QObject::connect(frogpilotSettingsWindow, &FrogPilotSettingsWindow::openParentToggle, this, [this]() {parentToggleOpen=true;});
-  QObject::connect(frogpilotSettingsWindow, &FrogPilotSettingsWindow::openSubParentToggle, this, [this]() {subParentToggleOpen=true;});
-  QObject::connect(frogpilotSettingsWindow, &FrogPilotSettingsWindow::openSubSubParentToggle, this, [this]() {subSubParentToggleOpen=true;});
+  QObject::connect(frogpilotSettingsWindow, &FrogPilotSettingsWindow::openPanel, [this]() {panelOpen=true;});
+  QObject::connect(frogpilotSettingsWindow, &FrogPilotSettingsWindow::openParentToggle, [this]() {parentToggleOpen=true;});
+  QObject::connect(frogpilotSettingsWindow, &FrogPilotSettingsWindow::openSubParentToggle, [this]() {subParentToggleOpen=true;});
+  QObject::connect(frogpilotSettingsWindow, &FrogPilotSettingsWindow::openSubSubParentToggle, [this]() {subSubParentToggleOpen=true;});
 
   QList<QPair<QString, QWidget *>> panels = {
     {tr("Device"), device},

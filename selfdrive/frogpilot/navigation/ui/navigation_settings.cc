@@ -238,7 +238,7 @@ SelectMaps::SelectMaps(QWidget *parent) : QWidget(parent) {
   mapsLayout->setSpacing(20);
   mainLayout->addLayout(mapsLayout);
 
-  QObject::connect(backButton, &QPushButton::clicked, this, [this]() { emit backPress(), emit setMaps(); });
+  QObject::connect(backButton, &QPushButton::clicked, [this]() { emit backPress(), emit setMaps(); });
 
   FrogPilotListWidget *statesList = new FrogPilotListWidget();
 
@@ -275,7 +275,7 @@ SelectMaps::SelectMaps(QWidget *parent) : QWidget(parent) {
   statesScrollView = new ScrollView(statesList);
   mapsLayout->addWidget(statesScrollView);
 
-  QObject::connect(statesButton, &QPushButton::clicked, this, [this]() {
+  QObject::connect(statesButton, &QPushButton::clicked, [this]() {
     mapsLayout->setCurrentWidget(statesScrollView);
     statesButton->setStyleSheet(activeButtonStyle);
     countriesButton->setStyleSheet(normalButtonStyle);
@@ -328,7 +328,7 @@ SelectMaps::SelectMaps(QWidget *parent) : QWidget(parent) {
   countriesScrollView = new ScrollView(countriesList);
   mapsLayout->addWidget(countriesScrollView);
 
-  QObject::connect(countriesButton, &QPushButton::clicked, this, [this]() {
+  QObject::connect(countriesButton, &QPushButton::clicked, [this]() {
     mapsLayout->setCurrentWidget(countriesScrollView);
     statesButton->setStyleSheet(normalButtonStyle);
     countriesButton->setStyleSheet(activeButtonStyle);
@@ -402,7 +402,7 @@ Primeless::Primeless(QWidget *parent) : QWidget(parent) {
   backButton = new QPushButton(tr("Back"), this);
   backButton->setObjectName("backButton");
   backButton->setFixedSize(400, 100);
-  QObject::connect(backButton, &QPushButton::clicked, this, [this]() { emit backPress(); });
+  QObject::connect(backButton, &QPushButton::clicked, [this]() { emit backPress(); });
   mainLayout->addWidget(backButton, 0, Qt::AlignLeft);
 
   list = new FrogPilotListWidget(mainWidget);
@@ -434,7 +434,7 @@ Primeless::Primeless(QWidget *parent) : QWidget(parent) {
   imageLabel->hide();
 
   ButtonControl *setupButton = new ButtonControl(tr("Setup Instructions"), tr("VIEW"), tr("View the instructions to set up MapBox for Primeless Navigation."), this);
-  QObject::connect(setupButton, &ButtonControl::clicked, this, [this]() {
+  QObject::connect(setupButton, &ButtonControl::clicked, [this]() {
     updateStep();
     backButton->hide();
     list->setVisible(false);

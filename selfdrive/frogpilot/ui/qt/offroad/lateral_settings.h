@@ -15,6 +15,7 @@ signals:
 
 private:
   void hideToggles();
+  void showToggles(std::set<QString> &keys);
   void updateCarToggles();
   void updateMetric();
   void updateState(const UIState &s);

@@ -760,12 +760,12 @@ void AnnotatedCameraWidget::initializeFrogPilotWidgets() {
   stopSignImg = loadPixmap("../frogpilot/assets/other_images/stop_sign.png", QSize(img_size, img_size));
 
   animationTimer = new QTimer(this);
-  QObject::connect(animationTimer, &QTimer::timeout, this, [this] {
+  QObject::connect(animationTimer, &QTimer::timeout, [this] {
     animationFrameIndex = (animationFrameIndex + 1) % totalFrames;
   });
 
   QTimer *recordTimer = new QTimer(this);
-  QObject::connect(recordTimer, &QTimer::timeout, this, [this] {
+  QObject::connect(recordTimer, &QTimer::timeout, [this] {
     recorder->updateScreen();
   });
   recordTimer->start(75);

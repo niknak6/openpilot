@@ -22,10 +22,8 @@ FrogPilotSoundsPanel::FrogPilotSoundsPanel(FrogPilotSettingsWindow *parent) : Fr
 
     if (param == "AlertVolumeControl") {
       FrogPilotParamManageControl *alertVolumeControlToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(alertVolumeControlToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        for (auto &[key, toggle] : toggles) {
-          toggle->setVisible(alertVolumeControlKeys.find(key.c_str()) != alertVolumeControlKeys.end());
-        }
+      QObject::connect(alertVolumeControlToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        showToggles(alertVolumeControlKeys);
       });
       soundsToggle = alertVolumeControlToggle;
     } else if (alertVolumeControlKeys.find(param) != alertVolumeControlKeys.end()) {
@@ -37,16 +35,14 @@ FrogPilotSoundsPanel::FrogPilotSoundsPanel(FrogPilotSettingsWindow *parent) : Fr
 
     } else if (param == "CustomAlerts") {
       FrogPilotParamManageControl *customAlertsToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
-      QObject::connect(customAlertsToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {
-        for (auto &[key, toggle] : toggles) {
-          std::set<QString> modifiedCustomAlertsKeys = customAlertsKeys;
+      QObject::connect(customAlertsToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
+        std::set<QString> modifiedCustomAlertsKeys = customAlertsKeys;
 
-          if (!hasBSM) {
-            modifiedCustomAlertsKeys.erase("LoudBlindspotAlert");
-          }
-
-          toggle->setVisible(modifiedCustomAlertsKeys.find(key.c_str()) != modifiedCustomAlertsKeys.end());
+        if (!hasBSM) {
+          modifiedCustomAlertsKeys.erase("LoudBlindspotAlert");
         }
+
+        showToggles(modifiedCustomAlertsKeys);
       });
       soundsToggle = customAlertsToggle;
 
@@ -58,14 +54,10 @@ FrogPilotSoundsPanel::FrogPilotSoundsPanel(FrogPilotSettingsWindow *parent) : Fr
     toggles[param.toStdString()] = soundsToggle;
 
     QObject::connect(static_cast<ToggleControl*>(soundsToggle), &ToggleControl::toggleFlipped, &updateFrogPilotToggles);
+    QObject::connect(static_cast<FrogPilotParamManageControl*>(soundsToggle), &FrogPilotParamManageControl::manageButtonClicked, this, &FrogPilotSoundsPanel::openParentToggle);
     QObject::connect(static_cast<FrogPilotParamValueControl*>(soundsToggle), &FrogPilotParamValueControl::valueChanged, &updateFrogPilotToggles);
 
     QObject::connect(soundsToggle, &AbstractControl::showDescriptionEvent, [this]() {
-      update();
-    });
-
-    QObject::connect(static_cast<FrogPilotParamManageControl*>(soundsToggle), &FrogPilotParamManageControl::manageButtonClicked, [this]() {
-      openParentToggle();
       update();
     });
   }
@@ -89,11 +81,30 @@ void FrogPilotSoundsPanel::updateCarToggles() {
   hideToggles();
 }
 
+void FrogPilotSoundsPanel::showToggles(std::set<QString> &keys) {
+  setUpdatesEnabled(false);
+
+  for (auto &[key, toggle] : toggles) {
+    if (keys.find(key.c_str()) != keys.end()) {
+      toggle->show();
+    } else {
+      toggle->hide();
+    }
+  }
+
+  setUpdatesEnabled(true);
+  update();
+}
+
 void FrogPilotSoundsPanel::hideToggles() {
   for (auto &[key, toggle] : toggles) {
     bool subToggles = alertVolumeControlKeys.find(key.c_str()) != alertVolumeControlKeys.end() ||
                       customAlertsKeys.find(key.c_str()) != customAlertsKeys.end();
-    toggle->setVisible(!subToggles);
+    if (!subToggles) {
+      toggle->show();
+    } else {
+      toggle->hide();
+    }
   }
 
   update();

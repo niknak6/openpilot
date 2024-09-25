@@ -18,6 +18,7 @@ private:
   void hideSubToggles();
   void hideToggles();
   void showEvent(QShowEvent *event) override;
+  void showToggles(std::set<QString> &keys);
   void updateCarToggles();
   void updateState(const UIState &s);
 

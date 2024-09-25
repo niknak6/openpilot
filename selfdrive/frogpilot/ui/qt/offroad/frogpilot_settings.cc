@@ -91,7 +91,7 @@ FrogPilotSettingsWindow::FrogPilotSettingsWindow(SettingsWindow *parent) : QFram
   mainLayout->addWidget(frogpilotSettingsWidget);
   mainLayout->setCurrentWidget(frogpilotSettingsWidget);
 
-  QObject::connect(parent, &SettingsWindow::closePanel, this, [this]() {mainLayout->setCurrentWidget(frogpilotSettingsWidget);});
+  QObject::connect(parent, &SettingsWindow::closePanel, [this]() {mainLayout->setCurrentWidget(frogpilotSettingsWidget);});
   QObject::connect(parent, &SettingsWindow::closeParentToggle, this, &FrogPilotSettingsWindow::closeParentToggle);
   QObject::connect(parent, &SettingsWindow::closeSubParentToggle, this, &FrogPilotSettingsWindow::closeSubParentToggle);
   QObject::connect(parent, &SettingsWindow::closeSubSubParentToggle, this, &FrogPilotSettingsWindow::closeSubSubParentToggle);
