@@ -15,7 +15,7 @@ FrogPilotDevicePanel::FrogPilotDevicePanel(FrogPilotSettingsWindow *parent) : Fr
     AbstractControl *deviceToggle;
 
     if (param == "DeviceManagement") {
-      FrogPilotParamManageControl *deviceManagementToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
+      FrogPilotParamManageControl *deviceManagementToggle = new FrogPilotParamManageControl(param, title, desc, icon);
       QObject::connect(deviceManagementToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         showToggles(deviceManagementKeys);
       });
@@ -34,16 +34,16 @@ FrogPilotDevicePanel::FrogPilotDevicePanel(FrogPilotSettingsWindow *parent) : Fr
       deviceToggle = new FrogPilotParamValueControl(param, title, desc, icon, 11.8, 12.5, tr(" volts"), std::map<int, QString>(), 0.01);
 
     } else {
-      deviceToggle = new ParamControl(param, title, desc, icon, this);
+      deviceToggle = new ParamControl(param, title, desc, icon);
     }
 
     addItem(deviceToggle);
     toggles[param.toStdString()] = deviceToggle;
 
-    QObject::connect(static_cast<ToggleControl*>(deviceToggle), &ToggleControl::toggleFlipped, &updateFrogPilotToggles);
-    QObject::connect(static_cast<FrogPilotButtonToggleControl*>(deviceToggle), &FrogPilotButtonToggleControl::buttonClicked, &updateFrogPilotToggles);
-    QObject::connect(static_cast<FrogPilotParamManageControl*>(deviceToggle), &FrogPilotParamManageControl::manageButtonClicked, this, &FrogPilotDevicePanel::openParentToggle);
-    QObject::connect(static_cast<FrogPilotParamValueControl*>(deviceToggle), &FrogPilotParamValueControl::valueChanged, &updateFrogPilotToggles);
+    tryConnect<ToggleControl>(deviceToggle, &ToggleControl::toggleFlipped, this, updateFrogPilotToggles);
+    tryConnect<FrogPilotButtonToggleControl>(deviceToggle, &FrogPilotButtonToggleControl::buttonClicked, this, updateFrogPilotToggles);
+    tryConnect<FrogPilotParamManageControl>(deviceToggle, &FrogPilotParamManageControl::manageButtonClicked, this, &FrogPilotDevicePanel::openParentToggle);
+    tryConnect<FrogPilotParamValueControl>(deviceToggle, &FrogPilotParamValueControl::valueChanged, this, updateFrogPilotToggles);
 
     QObject::connect(deviceToggle, &AbstractControl::showDescriptionEvent, [this]() {
       update();
@@ -84,9 +84,7 @@ void FrogPilotDevicePanel::showToggles(std::set<QString> &keys) {
 
   for (auto &[key, toggle] : toggles) {
     if (keys.find(key.c_str()) != keys.end()) {
-      toggle->show();
-    } else {
-      toggle->hide();
+      toggle->setVisible(keys.find(key.c_str()) != keys.end());
     }
   }
 
@@ -97,11 +95,7 @@ void FrogPilotDevicePanel::showToggles(std::set<QString> &keys) {
 void FrogPilotDevicePanel::hideToggles() {
   for (auto &[key, toggle] : toggles) {
     bool subToggles = deviceManagementKeys.find(key.c_str()) != deviceManagementKeys.end();
-    if (!subToggles) {
-      toggle->show();
-    } else {
-      toggle->hide();
-    }
+    toggle->setVisible(!subToggles);
   }
 
   update();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <type_traits>
 
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -12,6 +13,14 @@
 void updateFrogPilotToggles();
 
 QColor loadThemeColors(const QString &colorKey, bool clearCache = false);
+
+template <typename TargetType, typename SignalType, typename ReceiverType, typename SlotType>
+void tryConnect(AbstractControl *obj, SignalType signal, ReceiverType receiver, SlotType slot) {
+  TargetType *target = static_cast<TargetType*>(obj);
+  if (target) {
+    QObject::connect(target, signal, receiver, slot);
+  }
+}
 
 const QString buttonStyle = R"(
   QPushButton {
@@ -265,10 +274,11 @@ class FrogPilotParamValueControl : public AbstractControl {
 public:
   FrogPilotParamValueControl(const QString &param, const QString &title, const QString &desc, const QString &icon,
                              float minValue, float maxValue, const QString &label = "", const std::map<int, QString> &valueLabels = {},
-                             float interval = 1.0f, bool compactSize = false)
-      : AbstractControl(title, desc, icon), key(param.toStdString()), minValue(minValue), maxValue(maxValue),
-        labelText(label), interval(interval), valueLabels(valueLabels),
-        decimalPlaces(std::ceil(-std::log10(interval))), factor(std::pow(10.0f, decimalPlaces)) {
+                             float interval = 1.0f, bool compactSize = false, bool instantUpdate = false)
+    : AbstractControl(title, desc, icon), key(param.toStdString()), minValue(minValue), maxValue(maxValue),
+      labelText(label), interval(interval), valueLabels(valueLabels),
+      decimalPlaces(std::ceil(-std::log10(interval))), factor(std::pow(10.0f, decimalPlaces)),
+      instantUpdate(instantUpdate) {
 
     setupButton(decrementButton, "-");
     setupButton(incrementButton, "+");
@@ -330,7 +340,9 @@ private slots:
 
       previousDelta = false;
       params.putFloat(key, value);
-      emit valueChanged(value);
+      if (!instantUpdate) {
+        emit valueChanged(value);
+      }
     });
   }
 
@@ -350,12 +362,16 @@ private:
     updateValueDisplay();
   }
 
-  void updateValueDisplay() const {
+  void updateValueDisplay() {
     int intValue = static_cast<int>(value);
     if (valueLabels.count(intValue)) {
       valueLabel->setText(valueLabels.at(intValue));
     } else {
       valueLabel->setText(QString::number(value, 'f', decimalPlaces) + labelText);
+    }
+
+    if (instantUpdate) {
+      emit valueChanged(value);
     }
   }
 
@@ -390,6 +406,7 @@ private:
 
   QString labelText;
 
+  bool instantUpdate;
   bool previousDelta;
 
   int decimalPlaces;

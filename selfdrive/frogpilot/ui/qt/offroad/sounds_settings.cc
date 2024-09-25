@@ -21,7 +21,7 @@ FrogPilotSoundsPanel::FrogPilotSoundsPanel(FrogPilotSettingsWindow *parent) : Fr
     AbstractControl *soundsToggle;
 
     if (param == "AlertVolumeControl") {
-      FrogPilotParamManageControl *alertVolumeControlToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
+      FrogPilotParamManageControl *alertVolumeControlToggle = new FrogPilotParamManageControl(param, title, desc, icon);
       QObject::connect(alertVolumeControlToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         showToggles(alertVolumeControlKeys);
       });
@@ -34,7 +34,7 @@ FrogPilotSoundsPanel::FrogPilotSoundsPanel(FrogPilotSettingsWindow *parent) : Fr
       }
 
     } else if (param == "CustomAlerts") {
-      FrogPilotParamManageControl *customAlertsToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
+      FrogPilotParamManageControl *customAlertsToggle = new FrogPilotParamManageControl(param, title, desc, icon);
       QObject::connect(customAlertsToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         std::set<QString> modifiedCustomAlertsKeys = customAlertsKeys;
 
@@ -47,15 +47,15 @@ FrogPilotSoundsPanel::FrogPilotSoundsPanel(FrogPilotSettingsWindow *parent) : Fr
       soundsToggle = customAlertsToggle;
 
     } else {
-      soundsToggle = new ParamControl(param, title, desc, icon, this);
+      soundsToggle = new ParamControl(param, title, desc, icon);
     }
 
     addItem(soundsToggle);
     toggles[param.toStdString()] = soundsToggle;
 
-    QObject::connect(static_cast<ToggleControl*>(soundsToggle), &ToggleControl::toggleFlipped, &updateFrogPilotToggles);
-    QObject::connect(static_cast<FrogPilotParamManageControl*>(soundsToggle), &FrogPilotParamManageControl::manageButtonClicked, this, &FrogPilotSoundsPanel::openParentToggle);
-    QObject::connect(static_cast<FrogPilotParamValueControl*>(soundsToggle), &FrogPilotParamValueControl::valueChanged, &updateFrogPilotToggles);
+    tryConnect<ToggleControl>(soundsToggle, &ToggleControl::toggleFlipped, this, updateFrogPilotToggles);
+    tryConnect<FrogPilotParamManageControl>(soundsToggle, &FrogPilotParamManageControl::manageButtonClicked, this, &FrogPilotSoundsPanel::openParentToggle);
+    tryConnect<FrogPilotParamValueControl>(soundsToggle, &FrogPilotParamValueControl::valueChanged, this, updateFrogPilotToggles);
 
     QObject::connect(soundsToggle, &AbstractControl::showDescriptionEvent, [this]() {
       update();
@@ -85,11 +85,7 @@ void FrogPilotSoundsPanel::showToggles(std::set<QString> &keys) {
   setUpdatesEnabled(false);
 
   for (auto &[key, toggle] : toggles) {
-    if (keys.find(key.c_str()) != keys.end()) {
-      toggle->show();
-    } else {
-      toggle->hide();
-    }
+    toggle->setVisible(keys.find(key.c_str()) != keys.end());
   }
 
   setUpdatesEnabled(true);
@@ -100,11 +96,7 @@ void FrogPilotSoundsPanel::hideToggles() {
   for (auto &[key, toggle] : toggles) {
     bool subToggles = alertVolumeControlKeys.find(key.c_str()) != alertVolumeControlKeys.end() ||
                       customAlertsKeys.find(key.c_str()) != customAlertsKeys.end();
-    if (!subToggles) {
-      toggle->show();
-    } else {
-      toggle->hide();
-    }
+    toggle->setVisible(!subToggles);
   }
 
   update();

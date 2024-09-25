@@ -46,13 +46,13 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
     AbstractControl *visualToggle;
 
     if (param == "BonusContent") {
-      FrogPilotParamManageControl *BonusContentToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
+      FrogPilotParamManageControl *BonusContentToggle = new FrogPilotParamManageControl(param, title, desc, icon);
       QObject::connect(BonusContentToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         showToggles(bonusContentKeys);
       });
       visualToggle = BonusContentToggle;
     } else if (param == "PersonalizeOpenpilot") {
-      FrogPilotParamManageControl *personalizeOpenpilotToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
+      FrogPilotParamManageControl *personalizeOpenpilotToggle = new FrogPilotParamManageControl(param, title, desc, icon);
       QObject::connect(personalizeOpenpilotToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         personalizeOpenpilotOpen = true;
         openSubParentToggle();
@@ -193,7 +193,7 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
         currentColor.append(')');
       }
       manageCustomColorsBtn->setValue(currentColor);
-      visualToggle = reinterpret_cast<AbstractControl*>(manageCustomColorsBtn);
+      visualToggle = manageCustomColorsBtn;
     } else if (param == "CustomIcons") {
       manageCustomIconsBtn = new FrogPilotButtonsControl(title, desc, {tr("DELETE"), tr("DOWNLOAD"), tr("SELECT")});
 
@@ -326,7 +326,7 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
         currentIcon.append(')');
       }
       manageCustomIconsBtn->setValue(currentIcon);
-      visualToggle = reinterpret_cast<AbstractControl*>(manageCustomIconsBtn);
+      visualToggle = manageCustomIconsBtn;
     } else if (param == "CustomSignals") {
       manageCustomSignalsBtn = new FrogPilotButtonsControl(title, desc, {tr("DELETE"), tr("DOWNLOAD"), tr("SELECT")});
 
@@ -459,7 +459,7 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
         currentSignal.append(')');
       }
       manageCustomSignalsBtn->setValue(currentSignal);
-      visualToggle = reinterpret_cast<AbstractControl*>(manageCustomSignalsBtn);
+      visualToggle = manageCustomSignalsBtn;
     } else if (param == "CustomSounds") {
       manageCustomSoundsBtn = new FrogPilotButtonsControl(title, desc, {tr("DELETE"), tr("DOWNLOAD"), tr("SELECT")});
 
@@ -592,7 +592,7 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
         currentSound.append(')');
       }
       manageCustomSoundsBtn->setValue(currentSound);
-      visualToggle = reinterpret_cast<AbstractControl*>(manageCustomSoundsBtn);
+      visualToggle = manageCustomSoundsBtn;
     } else if (param == "WheelIcon") {
       manageWheelIconsBtn = new FrogPilotButtonsControl(title, desc, {tr("DELETE"), tr("DOWNLOAD"), tr("SELECT")});
 
@@ -725,7 +725,7 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
         currentWheel.append(')');
       }
       manageWheelIconsBtn->setValue(currentWheel);
-      visualToggle = reinterpret_cast<AbstractControl*>(manageWheelIconsBtn);
+      visualToggle = manageWheelIconsBtn;
     } else if (param == "DownloadStatusLabel") {
       downloadStatusLabel = new LabelControl(title, "Idle");
       visualToggle = reinterpret_cast<AbstractControl*>(downloadStatusLabel);
@@ -764,10 +764,10 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
           params.remove("StartupMessageBottom");
         }
       });
-      visualToggle = reinterpret_cast<AbstractControl*>(startupAlertButton);
+      visualToggle = startupAlertButton;
 
     } else if (param == "CustomUI") {
-      FrogPilotParamManageControl *customUIToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
+      FrogPilotParamManageControl *customUIToggle = new FrogPilotParamManageControl(param, title, desc, icon);
       QObject::connect(customUIToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         showToggles(customOnroadUIKeys);
       });
@@ -794,7 +794,7 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
       visualToggle = new FrogPilotButtonToggleControl(param, title, desc, stoppingPointToggles, stoppingPointToggleNames);
 
     } else if (param == "QOLVisuals") {
-      FrogPilotParamManageControl *qolToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
+      FrogPilotParamManageControl *qolToggle = new FrogPilotParamManageControl(param, title, desc, icon);
       QObject::connect(qolToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         showToggles(qolKeys);
       });
@@ -845,7 +845,7 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
       visualToggle = mapStyleButton;
 
     } else if (param == "ScreenManagement") {
-      FrogPilotParamManageControl *screenToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
+      FrogPilotParamManageControl *screenToggle = new FrogPilotParamManageControl(param, title, desc, icon);
       QObject::connect(screenToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         showToggles(screenKeys);
       });
@@ -856,22 +856,16 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
       visualToggle = new FrogPilotButtonToggleControl(param, title, desc, uiElementsToggles, uiElementsToggleNames);
     } else if (param == "ScreenBrightness" || param == "ScreenBrightnessOnroad") {
       std::map<int, QString> brightnessLabels;
-      if (param == "ScreenBrightnessOnroad") {
-        for (int i = 0; i <= 101; i++) {
-          brightnessLabels[i] = (i == 0) ? tr("Screen Off") : (i == 101) ? tr("Auto") : QString::number(i) + "%";
-        }
-        visualToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 101, QString(), brightnessLabels);
-      } else {
-        for (int i = 1; i <= 101; i++) {
-          brightnessLabels[i] = (i == 101) ? tr("Auto") : QString::number(i) + "%";
-        }
-        visualToggle = new FrogPilotParamValueControl(param, title, desc, icon, 1, 101, QString(), brightnessLabels);
+      int minBrightness = (param == "ScreenBrightnessOnroad") ? 0 : 1;
+      for (int i = 1; i <= 101; i++) {
+        brightnessLabels[i] = (i == 101) ? tr("Auto") : QString::number(i) + "%";
       }
+      visualToggle = new FrogPilotParamValueControl(param, title, desc, icon, minBrightness, 101, QString(), brightnessLabels, 1, false, true);
     } else if (param == "ScreenTimeout" || param == "ScreenTimeoutOnroad") {
       visualToggle = new FrogPilotParamValueControl(param, title, desc, icon, 5, 60, tr(" seconds"));
 
     } else {
-      visualToggle = new ParamControl(param, title, desc, icon, this);
+      visualToggle = new ParamControl(param, title, desc, icon);
     }
 
     addItem(visualToggle);
@@ -882,7 +876,6 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
       if (!started) {
         uiState()->scene.screen_brightness = value;
       }
-      updateFrogPilotToggles();
     });
 
     FrogPilotParamValueControl *screenBrightnessOnroadToggle = static_cast<FrogPilotParamValueControl*>(toggles["ScreenBrightnessOnroad"]);
@@ -890,13 +883,12 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
       if (started) {
         uiState()->scene.screen_brightness_onroad = value;
       }
-      updateFrogPilotToggles();
     });
 
-    QObject::connect(static_cast<ToggleControl*>(visualToggle), &ToggleControl::toggleFlipped, &updateFrogPilotToggles);
-    QObject::connect(static_cast<FrogPilotButtonToggleControl*>(visualToggle), &FrogPilotButtonToggleControl::buttonClicked, &updateFrogPilotToggles);
-    QObject::connect(static_cast<FrogPilotParamManageControl*>(visualToggle), &FrogPilotParamManageControl::manageButtonClicked, this, &FrogPilotVisualsPanel::openParentToggle);
-    QObject::connect(static_cast<FrogPilotParamValueControl*>(visualToggle), &FrogPilotParamValueControl::valueChanged, &updateFrogPilotToggles);
+    tryConnect<ToggleControl>(visualToggle, &ToggleControl::toggleFlipped, this, updateFrogPilotToggles);
+    tryConnect<FrogPilotButtonToggleControl>(visualToggle, &FrogPilotButtonToggleControl::buttonClicked, this, updateFrogPilotToggles);
+    tryConnect<FrogPilotParamManageControl>(visualToggle, &FrogPilotParamManageControl::manageButtonClicked, this, &FrogPilotVisualsPanel::openParentToggle);
+    tryConnect<FrogPilotParamValueControl>(visualToggle, &FrogPilotParamValueControl::valueChanged, this, updateFrogPilotToggles);
 
     QObject::connect(visualToggle, &AbstractControl::showDescriptionEvent, [this]() {
       update();
@@ -1007,11 +999,7 @@ void FrogPilotVisualsPanel::showToggles(std::set<QString> &keys) {
   setUpdatesEnabled(false);
 
   for (auto &[key, toggle] : toggles) {
-    if (keys.find(key.c_str()) != keys.end()) {
-      toggle->show();
-    } else {
-      toggle->hide();
-    }
+    toggle->setVisible(keys.find(key.c_str()) != keys.end());
   }
 
   setUpdatesEnabled(true);
@@ -1027,11 +1015,8 @@ void FrogPilotVisualsPanel::hideToggles() {
                       personalizeOpenpilotKeys.find(key.c_str()) != personalizeOpenpilotKeys.end() ||
                       qolKeys.find(key.c_str()) != qolKeys.end() ||
                       screenKeys.find(key.c_str()) != screenKeys.end();
-    if (!subToggles) {
-      toggle->show();
-    } else {
-      toggle->hide();
-    }
+
+    toggle->setVisible(!subToggles);
   }
 
   update();
@@ -1040,11 +1025,7 @@ void FrogPilotVisualsPanel::hideToggles() {
 void FrogPilotVisualsPanel::hideSubToggles() {
   if (personalizeOpenpilotOpen) {
     for (auto &[key, toggle] : toggles) {
-      if (bonusContentKeys.find(key.c_str()) != bonusContentKeys.end()) {
-        toggle->show();
-      } else {
-        toggle->hide();
-      }
+      toggle->setVisible(bonusContentKeys.find(key.c_str()) != bonusContentKeys.end());
     }
   }
 

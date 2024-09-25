@@ -50,7 +50,7 @@ FrogPilotLateralPanel::FrogPilotLateralPanel(FrogPilotSettingsWindow *parent) : 
     AbstractControl *lateralToggle;
 
     if (param == "AlwaysOnLateral") {
-      FrogPilotParamManageControl *aolToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
+      FrogPilotParamManageControl *aolToggle = new FrogPilotParamManageControl(param, title, desc, icon);
       QObject::connect(aolToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         showToggles(aolKeys);
       });
@@ -59,7 +59,7 @@ FrogPilotLateralPanel::FrogPilotLateralPanel(FrogPilotSettingsWindow *parent) : 
       lateralToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 99, tr("mph"));
 
     } else if (param == "LateralTune") {
-      FrogPilotParamManageControl *lateralTuneToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
+      FrogPilotParamManageControl *lateralTuneToggle = new FrogPilotParamManageControl(param, title, desc, icon);
       QObject::connect(lateralTuneToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         std::set<QString> modifiedLateralTuneKeys = lateralTuneKeys;
 
@@ -79,7 +79,7 @@ FrogPilotLateralPanel::FrogPilotLateralPanel(FrogPilotSettingsWindow *parent) : 
       lateralToggle = lateralTuneToggle;
 
     } else if (param == "QOLControls") {
-      FrogPilotParamManageControl *qolToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
+      FrogPilotParamManageControl *qolToggle = new FrogPilotParamManageControl(param, title, desc, icon);
       QObject::connect(qolToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         showToggles(qolKeys);
       });
@@ -92,7 +92,7 @@ FrogPilotLateralPanel::FrogPilotLateralPanel(FrogPilotSettingsWindow *parent) : 
       lateralToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 99, tr("mph"));
 
     } else if (param == "LaneChangeCustomizations") {
-      FrogPilotParamManageControl *laneChangeToggle = new FrogPilotParamManageControl(param, title, desc, icon, this);
+      FrogPilotParamManageControl *laneChangeToggle = new FrogPilotParamManageControl(param, title, desc, icon);
       QObject::connect(laneChangeToggle, &FrogPilotParamManageControl::manageButtonClicked, [this]() {
         showToggles(laneChangeKeys);
       });
@@ -109,16 +109,15 @@ FrogPilotLateralPanel::FrogPilotLateralPanel(FrogPilotSettingsWindow *parent) : 
       lateralToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 99, tr("mph"));
 
     } else {
-      lateralToggle = new ParamControl(param, title, desc, icon, this);
+      lateralToggle = new ParamControl(param, title, desc, icon);
     }
 
     addItem(lateralToggle);
     toggles[param.toStdString()] = lateralToggle;
 
-    QObject::connect(static_cast<ToggleControl*>(lateralToggle), &ToggleControl::toggleFlipped, &updateFrogPilotToggles);
-    QObject::connect(static_cast<FrogPilotButtonToggleControl*>(lateralToggle), &FrogPilotButtonToggleControl::buttonClicked, &updateFrogPilotToggles);
-    QObject::connect(static_cast<FrogPilotParamManageControl*>(lateralToggle), &FrogPilotParamManageControl::manageButtonClicked, this, &FrogPilotLateralPanel::openParentToggle);
-    QObject::connect(static_cast<FrogPilotParamValueControl*>(lateralToggle), &FrogPilotParamValueControl::valueChanged, &updateFrogPilotToggles);
+    tryConnect<ToggleControl>(lateralToggle, &ToggleControl::toggleFlipped, this, updateFrogPilotToggles);
+    tryConnect<FrogPilotParamManageControl>(lateralToggle, &FrogPilotParamManageControl::manageButtonClicked, this, &FrogPilotLateralPanel::openParentToggle);
+    tryConnect<FrogPilotParamValueControl>(lateralToggle, &FrogPilotParamValueControl::valueChanged, this, updateFrogPilotToggles);
 
     QObject::connect(lateralToggle, &AbstractControl::showDescriptionEvent, [this]() {
       update();
@@ -218,11 +217,7 @@ void FrogPilotLateralPanel::showToggles(std::set<QString> &keys) {
   setUpdatesEnabled(false);
 
   for (auto &[key, toggle] : toggles) {
-    if (keys.find(key.c_str()) != keys.end()) {
-      toggle->show();
-    } else {
-      toggle->hide();
-    }
+    toggle->setVisible(keys.find(key.c_str()) != keys.end());
   }
 
   setUpdatesEnabled(true);
@@ -235,11 +230,8 @@ void FrogPilotLateralPanel::hideToggles() {
                       laneChangeKeys.find(key.c_str()) != laneChangeKeys.end() ||
                       lateralTuneKeys.find(key.c_str()) != lateralTuneKeys.end() ||
                       qolKeys.find(key.c_str()) != qolKeys.end();
-    if (!subToggles) {
-      toggle->show();
-    } else {
-      toggle->hide();
-    }
+
+    toggle->setVisible(!subToggles);
   }
 
   update();
