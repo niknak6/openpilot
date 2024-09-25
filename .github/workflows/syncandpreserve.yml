@@ -1,0 +1,89 @@
+name: Sync and Preserve
+
+on:
+  workflow_dispatch:
+    inputs:
+      local_branch:
+        description: 'Your local branch to update (e.g., main)'
+        required: true
+        default: 'FrogPilot-Testing'
+      upstream_url:
+        description: 'Full URL of upstream branch (e.g., https://github.com/upstream/repo/tree/main)'
+        required: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Parse Upstream URL
+      run: |
+        UPSTREAM_URL="${{ github.event.inputs.upstream_url }}"
+        UPSTREAM_REPO=$(echo $UPSTREAM_URL | sed -E 's|https://github.com/([^/]+/[^/]+).*|\1|')
+        UPSTREAM_BRANCH=$(echo $UPSTREAM_URL | sed -E 's|.*/tree/([^/]+).*|\1|')
+        echo "UPSTREAM_REPO=$UPSTREAM_REPO" >> $GITHUB_ENV
+        echo "UPSTREAM_BRANCH=$UPSTREAM_BRANCH" >> $GITHUB_ENV
+
+    - name: Configure Git
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+
+    - name: Add Upstream Remote
+      run: git remote add upstream https://github.com/${{ env.UPSTREAM_REPO }}.git
+
+    - name: Fetch Upstream and Origin
+      run: |
+        git fetch upstream
+        git fetch origin
+
+    - name: Sync with Upstream (excluding workflows)
+      run: |
+        # Check if the local branch exists
+        if git show-ref --verify --quiet refs/heads/${{ github.event.inputs.local_branch }}; then
+          echo "Local branch ${{ github.event.inputs.local_branch }} exists. Checking out..."
+          git checkout ${{ github.event.inputs.local_branch }}
+        else
+          echo "Local branch ${{ github.event.inputs.local_branch }} does not exist. Creating..."
+          git checkout -b ${{ github.event.inputs.local_branch }}
+        fi
+
+        # Save current workflows
+        mkdir -p /tmp/workflows_backup
+        cp -R .github/workflows /tmp/workflows_backup || true
+
+        # Sync with upstream
+        git reset --hard upstream/${{ env.UPSTREAM_BRANCH }}
+
+        # Restore workflows
+        rm -rf .github/workflows
+        mv /tmp/workflows_backup/workflows .github/workflows 2>/dev/null || true
+
+        # Stage changes
+        git add .
+
+        # Commit if there are changes
+        if git diff --staged --quiet; then
+          echo "No changes to commit."
+        else
+          git commit -m "Sync with upstream and preserve workflows"
+        fi
+
+        # Debug information
+        echo "Git Status:"
+        git status
+        echo "Git Diff:"
+        git diff origin/${{ github.event.inputs.local_branch }}...HEAD || echo "Unable to show diff"
+
+    - name: Push Changes
+      run: |
+        if git push origin ${{ github.event.inputs.local_branch }} --force-with-lease; then
+          echo "Changes were successfully pushed to your branch (excluding workflow changes)."
+        else
+          echo "Failed to push changes. There might be conflicts."
+          exit 1
+        fi

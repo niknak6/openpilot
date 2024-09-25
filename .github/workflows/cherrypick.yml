@@ -1,0 +1,63 @@
+name: Cherry-pick Commit from External Repo
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: 'Branch to apply cherrypicked commit to'
+        required: true
+        default: 'FrogPilot-Staging'
+      external_repo:
+        description: 'External repo URL (e.g., https://github.com/owner/repo/tree/branch)'
+        required: true
+      commit_id:
+        description: 'Commit ID from external repo'
+        required: true
+
+jobs:
+  cherry_pick:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout target repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Configure Git
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+
+    - name: Parse external repo URL
+      run: |
+        URL="${{ github.event.inputs.external_repo }}"
+        REPO=$(echo $URL | sed -E 's|https://github.com/([^/]+/[^/]+).*|\1|')
+        BRANCH=$(echo $URL | sed -E 's|.*/tree/([^/]+).*|\1|')
+        echo "SOURCE_REPO=$REPO" >> $GITHUB_ENV
+        echo "SOURCE_BRANCH=$BRANCH" >> $GITHUB_ENV
+
+    - name: Fetch from external repository
+      run: |
+        git remote add source https://github.com/$SOURCE_REPO.git
+        git fetch source $SOURCE_BRANCH
+
+    - name: Cherry-pick commit
+      run: |
+        if ! git rev-parse --quiet --verify ${{ github.event.inputs.commit_id }}^{commit} >/dev/null; then
+          echo "Error: Commit ${{ github.event.inputs.commit_id }} not found in $SOURCE_REPO:$SOURCE_BRANCH."
+          echo "Recent commits in source branch:"
+          git log source/$SOURCE_BRANCH --oneline -n 10
+          exit 1
+        fi
+        git checkout ${{ github.event.inputs.target_branch }} || git checkout -b ${{ github.event.inputs.target_branch }}
+        if git cherry-pick ${{ github.event.inputs.commit_id }}; then
+          echo "Cherry-pick successful"
+        else
+          echo "Cherry-pick failed. There might be conflicts."
+          git status
+          git cherry-pick --abort
+          exit 1
+        fi
+
+    - name: Push changes
+      run: git push origin ${{ github.event.inputs.target_branch }}

@@ -1,0 +1,33 @@
+name: Revert Commit
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: 'Target branch to revert commit on'
+        required: true
+        default: 'main'
+      commit_sha:
+        description: 'SHA of the commit to revert'
+        required: true
+
+jobs:
+  revert-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+      - name: Revert commit
+        run: |
+          git checkout ${{ github.event.inputs.target_branch }}
+          git revert --no-commit ${{ github.event.inputs.commit_sha }}
+          git commit -m "Revert commit ${{ github.event.inputs.commit_sha }}"
+          git push origin ${{ github.event.inputs.target_branch }}
