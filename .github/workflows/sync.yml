@@ -1,0 +1,32 @@
+name: Sync and Cherry-pick
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync-and-cherrypick:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        ref: FrogPilot-Staging
+        token: ${{ secrets.PAT }}
+
+    - name: Configure Git
+      run: |
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "github-actions[bot]"
+    - name: Sync with upstream
+      run: |
+        git remote add upstream https://github.com/FrogAi/FrogPilot.git
+        git fetch upstream FrogPilot-Staging
+        git reset --hard upstream/FrogPilot-Staging
+    - name: Cherry-pick commit
+      run: |
+        git cherry-pick a30d110ff863398f48c5008192804ad002bf3163
+    - name: Push changes
+      run: |
+        git push --force origin FrogPilot-Staging
