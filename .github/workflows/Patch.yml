@@ -1,0 +1,51 @@
+name: Fork and Patch Repository
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_repo:
+        description: 'Source repository URL (e.g., https://github.com/owner/repo)'
+        required: true
+      new_branch_name:
+        description: 'Name for the new branch'
+        required: true
+      commit_sha:
+        description: 'Commit SHA to apply'
+        required: true
+
+jobs:
+  fork-and-patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Extract repo info
+        id: repo-info
+        run: |
+          echo "owner=$(echo ${{ github.event.inputs.source_repo }} | awk -F'/' '{print $(NF-1)}')" >> $GITHUB_OUTPUT
+          echo "repo=$(echo ${{ github.event.inputs.source_repo }} | awk -F'/' '{print $NF}' | sed 's/.git$//')" >> $GITHUB_OUTPUT
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+
+      - name: Add remote and fetch
+        run: |
+          git remote add source ${{ github.event.inputs.source_repo }}
+          git fetch source
+
+      - name: Create new branch
+        run: |
+          git checkout -b ${{ github.event.inputs.new_branch_name }} source/main
+
+      - name: Cherry-pick commit
+        run: |
+          git cherry-pick ${{ github.event.inputs.commit_sha }}
+
+      - name: Push changes
+        run: |
+          git push origin ${{ github.event.inputs.new_branch_name }}
