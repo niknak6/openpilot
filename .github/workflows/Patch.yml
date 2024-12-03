@@ -36,11 +36,17 @@ jobs:
       - name: Add remote and fetch
         run: |
           git remote add source ${{ steps.clean-url.outputs.clean_url }}
-          git fetch source
+          git fetch source --no-tags
+
+      - name: Get default branch
+        id: get-branch
+        run: |
+          DEFAULT_BRANCH=$(git ls-remote --symref source HEAD | awk -F'refs/heads/' '/ref:/ {print $2}')
+          echo "default_branch=${DEFAULT_BRANCH}" >> $GITHUB_OUTPUT
 
       - name: Create new branch
         run: |
-          git checkout -b ${{ github.event.inputs.new_branch_name }} source/main
+          git checkout -b ${{ github.event.inputs.new_branch_name }} source/${{ steps.get-branch.outputs.default_branch }}
 
       - name: Cherry-pick commit
         run: |
