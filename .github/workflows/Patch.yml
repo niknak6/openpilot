@@ -6,6 +6,9 @@ on:
       source_repo:
         description: 'Source repository URL (e.g., https://github.com/owner/repo)'
         required: true
+      source_branch:
+        description: 'Source branch to fork (e.g., main, develop)'
+        required: true
       new_branch_name:
         description: 'Name for the new branch'
         required: true
@@ -38,15 +41,10 @@ jobs:
           git remote add source ${{ steps.clean-url.outputs.clean_url }}
           git fetch source --no-tags
 
-      - name: Get default branch
-        id: get-branch
-        run: |
-          DEFAULT_BRANCH=$(git ls-remote --symref source HEAD | awk -F'refs/heads/' '/ref:/ {print $2}')
-          echo "default_branch=${DEFAULT_BRANCH}" >> $GITHUB_OUTPUT
-
       - name: Create new branch
         run: |
-          git checkout -b ${{ github.event.inputs.new_branch_name }} source/${{ steps.get-branch.outputs.default_branch }}
+          git fetch source ${{ github.event.inputs.source_branch }}:refs/remotes/source/${{ github.event.inputs.source_branch }}
+          git checkout -b ${{ github.event.inputs.new_branch_name }} source/${{ github.event.inputs.source_branch }}
 
       - name: Cherry-pick commit
         run: |
