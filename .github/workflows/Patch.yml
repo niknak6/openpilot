@@ -22,11 +22,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Extract repo info
-        id: repo-info
+      - name: Clean repository URL
+        id: clean-url
         run: |
-          echo "owner=$(echo ${{ github.event.inputs.source_repo }} | awk -F'/' '{print $(NF-1)}')" >> $GITHUB_OUTPUT
-          echo "repo=$(echo ${{ github.event.inputs.source_repo }} | awk -F'/' '{print $NF}' | sed 's/.git$//')" >> $GITHUB_OUTPUT
+          CLEAN_URL=$(echo "${{ github.event.inputs.source_repo }}" | sed 's/\/tree\/.*//g')
+          echo "clean_url=${CLEAN_URL}" >> $GITHUB_OUTPUT
 
       - name: Configure Git
         run: |
@@ -35,7 +35,7 @@ jobs:
 
       - name: Add remote and fetch
         run: |
-          git remote add source ${{ github.event.inputs.source_repo }}
+          git remote add source ${{ steps.clean-url.outputs.clean_url }}
           git fetch source
 
       - name: Create new branch
