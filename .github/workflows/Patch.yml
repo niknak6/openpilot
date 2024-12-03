@@ -15,6 +15,9 @@ on:
       commit_sha:
         description: 'Commit SHA to apply'
         required: true
+      commit_repo:
+        description: 'Repository containing the commit (if different from source)'
+        required: false
 
 jobs:
   fork-and-patch:
@@ -36,10 +39,14 @@ jobs:
           git config --global user.name "${{ github.actor }}"
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
 
-      - name: Add remote and fetch
+      - name: Add remotes and fetch
         run: |
           git remote add source ${{ steps.clean-url.outputs.clean_url }}
           git fetch source --no-tags
+          if [ ! -z "${{ github.event.inputs.commit_repo }}" ]; then
+            git remote add commit_source ${{ github.event.inputs.commit_repo }}
+            git fetch commit_source --no-tags
+          fi
 
       - name: Create new branch
         run: |
@@ -48,7 +55,12 @@ jobs:
 
       - name: Cherry-pick commit
         run: |
-          git cherry-pick ${{ github.event.inputs.commit_sha }}
+          if [ ! -z "${{ github.event.inputs.commit_repo }}" ]; then
+            git cherry-pick ${{ github.event.inputs.commit_sha }}
+          else
+            git fetch source ${{ github.event.inputs.commit_sha }}
+            git cherry-pick ${{ github.event.inputs.commit_sha }}
+          fi
 
       - name: Push changes
         run: |
